@@ -1,0 +1,9 @@
+package com.invest.domain.ports.in;
+
+import com.invest.application.commands.CreateRuleCommand;
+import com.invest.application.responses.RuleResponse;
+
+public interface CreateRuleUseCase {
+
+    RuleResponse execute(Long usuarioId, CreateRuleCommand command);
+}

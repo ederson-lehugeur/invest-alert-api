@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: investalert-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: investalert
+      MYSQL_USER: investalert
+      MYSQL_PASSWORD: investalert
+    volumes:
+      - investalert-data:/var/lib/mysql
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
+      - ./docker/mysql/init/01-seed-demo-user.sql:/docker-entrypoint-initdb.d/01-seed-demo-user.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  investalert-data:

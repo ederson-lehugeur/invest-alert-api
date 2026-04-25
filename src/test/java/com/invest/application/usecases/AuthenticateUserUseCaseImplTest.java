@@ -1,0 +1,76 @@
+package com.invest.application.usecases;
+
+import com.invest.application.commands.AuthenticateUserCommand;
+import com.invest.application.responses.TokenResponse;
+import com.invest.domain.entities.User;
+import com.invest.domain.exceptions.InvalidCredentialsException;
+import com.invest.domain.ports.out.PasswordEncoder;
+import com.invest.domain.ports.out.TokenProvider;
+import com.invest.domain.ports.out.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class AuthenticateUserUseCaseImplTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TokenProvider tokenProvider;
+
+    private AuthenticateUserUseCaseImpl useCase;
+
+    @BeforeEach
+    void setUp() {
+        useCase = new AuthenticateUserUseCaseImpl(userRepository, passwordEncoder, tokenProvider);
+    }
+
+    @Test
+    void shouldReturnToken_whenCredentialsAreValid() {
+        var command = new AuthenticateUserCommand("john@example.com", "secret123");
+        var user = new User(1L, "John", "john@example.com", "hashed", null, null);
+
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("secret123", "hashed")).thenReturn(true);
+        when(tokenProvider.generateToken(user)).thenReturn("jwt.token.here");
+        when(tokenProvider.getExpirationInSeconds()).thenReturn(3600L);
+
+        TokenResponse response = useCase.execute(command);
+
+        assertEquals("jwt.token.here", response.token());
+        assertEquals(3600L, response.expiresIn());
+    }
+
+    @Test
+    void shouldThrowInvalidCredentials_whenEmailNotFound() {
+        var command = new AuthenticateUserCommand("unknown@example.com", "pass");
+        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(InvalidCredentialsException.class, () -> useCase.execute(command));
+        verify(tokenProvider, never()).generateToken(any());
+    }
+
+    @Test
+    void shouldThrowInvalidCredentials_whenPasswordIsWrong() {
+        var command = new AuthenticateUserCommand("john@example.com", "wrongpass");
+        var user = new User(1L, "John", "john@example.com", "hashed", null, null);
+
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongpass", "hashed")).thenReturn(false);
+
+        assertThrows(InvalidCredentialsException.class, () -> useCase.execute(command));
+        verify(tokenProvider, never()).generateToken(any());
+    }
+}
