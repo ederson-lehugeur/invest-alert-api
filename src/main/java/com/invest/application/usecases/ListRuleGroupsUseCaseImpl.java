@@ -5,6 +5,7 @@ import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.RuleGroup;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.ports.in.ListRuleGroupsUseCase;
+import com.invest.domain.ports.out.AlertRepository;
 import com.invest.domain.ports.out.RuleGroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ListRuleGroupsUseCaseImpl implements ListRuleGroupsUseCase {
 
     private final RuleGroupRepository ruleGroupRepository;
+    private final AlertRepository alertRepository;
 
     @Override
     public List<RuleGroupResponse> execute(Long userId) {
@@ -43,6 +45,10 @@ public class ListRuleGroupsUseCaseImpl implements ListRuleGroupsUseCase {
     }
 
     private RuleResponse toRuleResponse(Rule rule) {
+        boolean triggered = rule.getGroupId() != null
+                ? alertRepository.existsByGroupId(rule.getGroupId())
+                : alertRepository.existsByRuleId(rule.getId());
+
         return new RuleResponse(
                 rule.getId(),
                 rule.getTicker(),
@@ -51,7 +57,7 @@ public class ListRuleGroupsUseCaseImpl implements ListRuleGroupsUseCase {
                 rule.getTargetValue(),
                 rule.getGroupId(),
                 rule.isActive(),
-                false
+                triggered
         );
     }
 }

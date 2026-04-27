@@ -30,6 +30,10 @@ public class ListRulesUseCaseImpl implements ListRulesUseCase {
     }
 
     private RuleResponse toResponse(Rule rule) {
+        boolean triggered = rule.getGroupId() != null
+                ? alertRepository.existsByGroupId(rule.getGroupId())
+                : alertRepository.existsByRuleId(rule.getId());
+
         return new RuleResponse(
                 rule.getId(),
                 rule.getTicker(),
@@ -38,7 +42,7 @@ public class ListRulesUseCaseImpl implements ListRulesUseCase {
                 rule.getTargetValue(),
                 rule.getGroupId(),
                 rule.isActive(),
-                alertRepository.existsByRuleId(rule.getId())
+                triggered
         );
     }
 }

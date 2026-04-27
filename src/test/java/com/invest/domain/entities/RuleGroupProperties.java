@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Validates: Requirements 4.2
- * Feature: investments-opportunity-monitor, Property 4: Avaliacao AND de grupo de regras
+ * Validates: Requirements 9.1
+ * Property-based tests for RuleGroup structural/data integrity.
+ * After refactoring, RuleGroup is a pure data entity (no evaluate behavior).
  */
 class RuleGroupProperties {
 
@@ -33,17 +34,6 @@ class RuleGroupProperties {
     }
 
     @Provide
-    Arbitrary<Asset> assets() {
-        return Combinators.combine(
-                positiveBigDecimals(),
-                positiveBigDecimals(),
-                positiveBigDecimals()
-        ).as((price, dy, pvp) ->
-                new Asset(1L, "XPLG11", "FII XP Log", price, dy, pvp, NOW)
-        );
-    }
-
-    @Provide
     Arbitrary<Rule> rules() {
         return Combinators.combine(
                 fields(),
@@ -54,47 +44,49 @@ class RuleGroupProperties {
         );
     }
 
-    // Feature: investments-opportunity-monitor, Property 4: Avaliacao AND de grupo de regras
     @Property(tries = 150)
-    void groupEvaluate_returnsTrueIffAllRulesReturnTrue(
-            @ForAll("assets") Asset asset,
-            @ForAll @Size(min = 1, max = 10) List<@From("rules") Rule> rulesList) {
+    void groupPreservesAllRules(
+            @ForAll @Size(min = 0, max = 10) List<@From("rules") Rule> rulesList) {
 
         RuleGroup group = new RuleGroup(1L, 1L, "XPLG11", "Test Group", rulesList, NOW);
 
-        boolean allIndividuallyTrue = rulesList.stream()
-                .allMatch(rule -> rule.evaluate(asset));
+        assert group.getRules().size() == rulesList.size() :
+                "RuleGroup should preserve all %d rules but has %d"
+                        .formatted(rulesList.size(), group.getRules().size());
 
-        boolean groupResult = group.evaluate(asset);
-
-        assert groupResult == allIndividuallyTrue :
-                "RuleGroup.evaluate() returned %s but individual allMatch was %s for %d rules"
-                        .formatted(groupResult, allIndividuallyTrue, rulesList.size());
+        for (int i = 0; i < rulesList.size(); i++) {
+            assert group.getRules().get(i) == rulesList.get(i) :
+                    "Rule at index %d should be the same instance".formatted(i);
+        }
     }
 
-    // Feature: investments-opportunity-monitor, Property 4: Avaliacao AND de grupo de regras
-    @Property(tries = 100)
-    void emptyGroup_alwaysReturnsTrue(@ForAll("assets") Asset asset) {
-        RuleGroup group = new RuleGroup(1L, 1L, "XPLG11", "Empty Group", List.of(), NOW);
-
-        boolean result = group.evaluate(asset);
-
-        assert result : "Empty RuleGroup should return true (allMatch on empty stream is true)";
-    }
-
-    // Feature: investments-opportunity-monitor, Property 4: Avaliacao AND de grupo de regras
     @Property(tries = 150)
-    void singleRuleGroup_matchesIndividualRuleResult(
-            @ForAll("assets") Asset asset,
-            @ForAll("rules") Rule rule) {
+    void groupPreservesConstructorFields(
+            @ForAll("positiveBigDecimals") BigDecimal targetValue,
+            @ForAll("fields") RuleField field,
+            @ForAll("operators") ComparisonOperator operator) {
 
-        RuleGroup group = new RuleGroup(1L, 1L, "XPLG11", "Single Rule Group", List.of(rule), NOW);
+        Rule rule = new Rule(1L, 1L, "XPLG11", null, field, operator, targetValue, true, NOW, NOW);
+        RuleGroup group = new RuleGroup(42L, 7L, "HGLG11", "My Group", List.of(rule), NOW);
 
-        boolean individualResult = rule.evaluate(asset);
-        boolean groupResult = group.evaluate(asset);
+        assert group.getId() == 42L : "id should be preserved";
+        assert group.getUserId() == 7L : "userId should be preserved";
+        assert "HGLG11".equals(group.getTicker()) : "ticker should be preserved";
+        assert "My Group".equals(group.getName()) : "name should be preserved";
+        assert group.getCreatedAt().equals(NOW) : "createdAt should be preserved";
+        assert group.getRules().size() == 1 : "rules list size should be 1";
+    }
 
-        assert groupResult == individualResult :
-                "Single-rule group returned %s but individual rule returned %s"
-                        .formatted(groupResult, individualResult);
+    @Property(tries = 100)
+    void groupNameIsUpdatableViaSetter(
+            @ForAll @Size(min = 1, max = 10) List<@From("rules") Rule> rulesList) {
+
+        RuleGroup group = new RuleGroup(1L, 1L, "XPLG11", "Original", rulesList, NOW);
+        group.setName("Updated Name");
+
+        assert "Updated Name".equals(group.getName()) :
+                "Name should be updatable via setter";
+        assert group.getRules().size() == rulesList.size() :
+                "Updating name should not affect rules list";
     }
 }

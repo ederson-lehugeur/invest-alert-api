@@ -21,6 +21,8 @@ public interface JpaAlertRepository extends JpaRepository<AlertEntity, Long> {
 
     boolean existsByRuleId(Long ruleId);
 
+    boolean existsByGroupId(Long groupId);
+
     boolean existsByRuleIdAndTickerAndStatus(Long ruleId, String ticker, AlertStatus status);
 
     boolean existsByGroupIdAndTickerAndStatus(Long groupId, String ticker, AlertStatus status);

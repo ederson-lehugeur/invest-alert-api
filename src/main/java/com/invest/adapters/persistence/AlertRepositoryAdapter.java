@@ -89,6 +89,11 @@ public class AlertRepositoryAdapter implements AlertRepository {
     }
 
     @Override
+    public boolean existsByGroupId(Long groupId) {
+        return jpaRepository.existsByGroupId(groupId);
+    }
+
+    @Override
     public boolean existsActiveAlert(Long ruleId, String ticker) {
         return jpaRepository.existsByRuleIdAndTickerAndStatus(
                 ruleId, ticker, AlertStatus.PENDING);

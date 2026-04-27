@@ -21,6 +21,8 @@ public interface AlertRepository {
 
     boolean existsByRuleId(Long ruleId);
 
+    boolean existsByGroupId(Long groupId);
+
     boolean existsActiveAlert(Long ruleId, String ticker);
 
     boolean existsActiveAlertForGroup(Long groupId, String ticker);

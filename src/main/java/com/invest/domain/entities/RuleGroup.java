@@ -19,8 +19,4 @@ public class RuleGroup {
     @Setter private String name;
     @Setter private List<Rule> rules;
     private LocalDateTime createdAt;
-
-    public boolean evaluate(Asset asset) {
-        return rules.stream().allMatch(rule -> rule.evaluate(asset));
-    }
 }

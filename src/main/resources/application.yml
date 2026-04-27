@@ -2,9 +2,12 @@ spring:
   application:
     name: invest-alert-api
 
+  jackson:
+    time-zone: ${TZ:America/Sao_Paulo}
+
   # MySQL Configuration (Req 8.1, 8.2)
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:investmonitor}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:investmonitor}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=${TZ:America/Sao_Paulo}
     username: ${MYSQL_USERNAME:root}
     password: ${MYSQL_PASSWORD:changeme}
     hikari:
@@ -27,36 +30,8 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
-  # SMTP Configuration (Req 8.4)
-  mail:
-    host: ${SMTP_HOST:smtp.example.com}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USERNAME:user@example.com}
-    password: ${SMTP_PASSWORD:changeme}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-  # Quartz Configuration (Req 8.5)
-  quartz:
-    job-store-type: memory
-    properties:
-      org:
-        quartz:
-          scheduler:
-            instanceName: InvestMonitorScheduler
-          threadPool:
-            threadCount: 3
-
 # JWT Configuration (Req 8.3)
 app:
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-key-change-in-production}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
-
-  # Quartz evaluation interval in milliseconds (Req 8.5)
-  scheduler:
-    evaluation-interval-ms: ${SCHEDULER_INTERVAL_MS:300000}

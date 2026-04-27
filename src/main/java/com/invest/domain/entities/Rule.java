@@ -1,7 +1,5 @@
 package com.invest.domain.entities;
 
-import com.invest.domain.strategy.ComparisonStrategy;
-import com.invest.domain.strategy.ComparisonStrategyFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,10 +23,4 @@ public class Rule {
     @Setter private boolean active;
     private LocalDateTime createdAt;
     @Setter private LocalDateTime updatedAt;
-
-    public boolean evaluate(Asset asset) {
-        BigDecimal currentValue = asset.getValueByField(this.field);
-        ComparisonStrategy strategy = ComparisonStrategyFactory.create(this.operator);
-        return strategy.evaluate(currentValue, this.targetValue);
-    }
 }
