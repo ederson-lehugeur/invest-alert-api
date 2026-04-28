@@ -1,4 +1,4 @@
-package com.invest.adapters.web;
+package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.UpdateRuleCommand;
 import com.invest.application.commands.CreateRuleCommand;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rules")
+@RequestMapping("/rules")
 @Tag(name = "Rules", description = "Operations for creating, listing, updating, and deleting monitoring rules")
 @SecurityRequirement(name = "bearerAuth")
 public class RuleController {

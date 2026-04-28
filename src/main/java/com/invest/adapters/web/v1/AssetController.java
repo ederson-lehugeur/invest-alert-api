@@ -1,4 +1,4 @@
-package com.invest.adapters.web;
+package com.invest.adapters.web.v1;
 
 import com.invest.application.responses.AssetResponse;
 import com.invest.domain.ports.in.GetAssetUseCase;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/assets")
+@RequestMapping("/assets")
 @Tag(name = "Assets", description = "Operations for listing and retrieving monitored assets")
 @SecurityRequirement(name = "bearerAuth")
 public class AssetController {

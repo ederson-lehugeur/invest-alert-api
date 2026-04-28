@@ -1,4 +1,4 @@
-package com.invest.adapters.web;
+package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.AuthenticateUserCommand;
 import com.invest.application.commands.RegisterUserCommand;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @Tag(name = "Authentication", description = "User registration and login operations")
 public class AuthController {
 

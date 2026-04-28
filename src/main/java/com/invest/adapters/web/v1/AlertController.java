@@ -1,4 +1,4 @@
-package com.invest.adapters.web;
+package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.AlertFilterCommand;
 import com.invest.application.responses.AlertResponse;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/alerts")
+@RequestMapping("/alerts")
 @Tag(name = "Alerts", description = "Operations for viewing alert history")
 @SecurityRequirement(name = "bearerAuth")
 public class AlertController {

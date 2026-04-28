@@ -1,4 +1,4 @@
-package com.invest.adapters.web;
+package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.CreateRuleGroupCommand;
 import com.invest.application.responses.RuleGroupResponse;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rule-groups")
+@RequestMapping("/rule-groups")
 @Tag(name = "Rule Groups", description = "Operations for creating and listing rule groups")
 @SecurityRequirement(name = "bearerAuth")
 public class RuleGroupController {

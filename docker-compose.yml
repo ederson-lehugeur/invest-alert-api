@@ -1,23 +1,25 @@
 services:
   mysql:
     image: mysql:8.4
-    container_name: investalert-mysql
+    container_name: investalert-api-mysql
     ports:
-      - "3307:3306"
+      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: investalert
-      MYSQL_USER: investalert
-      MYSQL_PASSWORD: investalert
+      TZ: ${TZ:-America/Sao_Paulo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-investmonitor}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
     volumes:
-      - investalert-data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
       - ./docker/mysql/init/01-seed-demo-user.sql:/docker-entrypoint-initdb.d/01-seed-demo-user.sql:ro
+      - ./docker/mysql/init/02-seed-assets.sql:/docker-entrypoint-initdb.d/02-seed-assets.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD:-changeme}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  investalert-data:
+  mysql_data:
