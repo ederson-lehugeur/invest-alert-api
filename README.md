@@ -19,10 +19,26 @@ Backend para monitoramento de oportunidades de investimento em FIIs (Fundos de I
 O projeto segue Clean Architecture com as seguintes camadas:
 
 ```
-domain          - Entidades (User, Asset, Rule, RuleGroup, Alert), ports (interfaces in/out)
-application     - Use cases, commands, responses
+domain          - Entidades (User, Asset, Rule, RuleGroup, Alert), ports/out (repositorios,
+                  PasswordEncoder, TokenProvider, PageRequest, PageResult)
+application     - ports/in (interfaces de use cases), use cases (implementacoes),
+                  commands, responses
 adapters        - Controllers REST (web/v1), adaptadores JPA (persistence)
 infrastructure  - Configuracoes Spring (Security, JWT, OpenAPI, versionamento)
+```
+
+A camada `domain` e completamente livre de dependencias externas - nao referencia nenhuma outra camada do projeto. As interfaces de use case (`ports/in`) vivem em `application` junto com os commands e responses que definem seus contratos, evitando que o dominio dependa de tipos da camada de aplicacao.
+
+As entidades JPA (`adapters/persistence/entities`) utilizam o padrao Builder via Lombok (`@Builder` + `@NoArgsConstructor` + `@AllArgsConstructor`), e os mappers constroem essas entidades exclusivamente via builder.
+
+### Fluxo de dependencias
+
+```
+adapters/web  ->  application.ports.in  <-  application.usecases
+                                                     |
+                                            domain.ports.out
+                                                     |
+                                          adapters/persistence
 ```
 
 ### Fluxo principal
@@ -31,7 +47,7 @@ infrastructure  - Configuracoes Spring (Security, JWT, OpenAPI, versionamento)
 HTTP Request
     -> JwtAuthenticationFilter (valida token)
         -> Controller (v1)
-            -> Use Case
+            -> Use Case (application.ports.in)
                 -> Domain (regras de negocio)
                 -> Repository (persistencia MySQL)
 ```
