@@ -3,7 +3,7 @@ package com.invest.application.usecases;
 import com.invest.application.responses.AssetResponse;
 import com.invest.domain.entities.Asset;
 import com.invest.domain.exceptions.AssetNotFoundException;
-import com.invest.domain.ports.out.AssetRepository;
+import com.invest.domain.ports.out.repositories.AssetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

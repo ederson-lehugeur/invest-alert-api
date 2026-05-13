@@ -7,7 +7,7 @@ import com.invest.domain.exceptions.InvalidCredentialsException;
 import com.invest.domain.ports.in.AuthenticateUserUseCase;
 import com.invest.domain.ports.out.PasswordEncoder;
 import com.invest.domain.ports.out.TokenProvider;
-import com.invest.domain.ports.out.UserRepository;
+import com.invest.domain.ports.out.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

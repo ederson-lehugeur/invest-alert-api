@@ -3,8 +3,8 @@ package com.invest.application.usecases;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.ports.in.ListRulesUseCase;
-import com.invest.domain.ports.out.AlertRepository;
-import com.invest.domain.ports.out.RuleRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.RuleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

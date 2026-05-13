@@ -1,12 +1,11 @@
 package com.invest.application.usecases;
 
-import com.invest.domain.entities.RuleField;
-import com.invest.domain.entities.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.ComparisonOperator;
 import com.invest.domain.entities.Rule;
-import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
-import com.invest.domain.ports.out.AlertRepository;
-import com.invest.domain.ports.out.RuleRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.RuleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,11 +1,11 @@
 package com.invest.application.usecases;
 
 import com.invest.application.responses.RuleResponse;
-import com.invest.domain.entities.RuleField;
-import com.invest.domain.entities.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.ComparisonOperator;
 import com.invest.domain.entities.Rule;
-import com.invest.domain.ports.out.AlertRepository;
-import com.invest.domain.ports.out.RuleRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.RuleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

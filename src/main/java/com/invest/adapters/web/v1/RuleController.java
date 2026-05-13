@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/rules")
 @Tag(name = "Rules", description = "Operations for creating, listing, updating, and deleting monitoring rules")
@@ -36,16 +38,6 @@ public class RuleController {
     private final ListRulesUseCase listRulesUseCase;
     private final UpdateRuleUseCase updateRuleUseCase;
     private final DeleteRuleUseCase deleteRuleUseCase;
-
-    public RuleController(CreateRuleUseCase createRuleUseCase,
-                          ListRulesUseCase listRulesUseCase,
-                          UpdateRuleUseCase updateRuleUseCase,
-                          DeleteRuleUseCase deleteRuleUseCase) {
-        this.createRuleUseCase = createRuleUseCase;
-        this.listRulesUseCase = listRulesUseCase;
-        this.updateRuleUseCase = updateRuleUseCase;
-        this.deleteRuleUseCase = deleteRuleUseCase;
-    }
 
     @PostMapping
     @Operation(summary = "Create a rule", description = "Creates a new monitoring rule for the authenticated user")

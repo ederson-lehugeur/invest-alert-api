@@ -5,5 +5,5 @@ import com.invest.application.responses.RuleResponse;
 
 public interface CreateRuleUseCase {
 
-    RuleResponse execute(Long usuarioId, CreateRuleCommand command);
+    RuleResponse execute(Long userId, CreateRuleCommand command);
 }

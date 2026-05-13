@@ -6,7 +6,7 @@ import com.invest.domain.entities.User;
 import com.invest.domain.exceptions.EmailAlreadyExistsException;
 import com.invest.domain.ports.in.RegisterUserUseCase;
 import com.invest.domain.ports.out.PasswordEncoder;
-import com.invest.domain.ports.out.UserRepository;
+import com.invest.domain.ports.out.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

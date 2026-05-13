@@ -7,5 +7,5 @@ import com.invest.domain.ports.out.PageResult;
 
 public interface ListAlertHistoryUseCase {
 
-    PageResult<AlertResponse> execute(Long usuarioId, AlertFilterCommand filtro, PageRequest pageRequest);
+    PageResult<AlertResponse> execute(Long userId, AlertFilterCommand filter, PageRequest pageRequest);
 }

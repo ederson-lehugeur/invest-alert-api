@@ -4,7 +4,7 @@ import com.invest.application.commands.AlertFilterCommand;
 import com.invest.application.responses.AlertResponse;
 import com.invest.domain.entities.Alert;
 import com.invest.domain.ports.in.ListAlertHistoryUseCase;
-import com.invest.domain.ports.out.AlertRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;
 import lombok.RequiredArgsConstructor;

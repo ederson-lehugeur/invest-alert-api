@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ListRuleGroupsUseCase {
 
-    List<RuleGroupResponse> execute(Long usuarioId);
+    List<RuleGroupResponse> execute(Long userId);
 }

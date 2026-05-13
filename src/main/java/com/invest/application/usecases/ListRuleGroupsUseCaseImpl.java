@@ -5,8 +5,8 @@ import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.RuleGroup;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.ports.in.ListRuleGroupsUseCase;
-import com.invest.domain.ports.out.AlertRepository;
-import com.invest.domain.ports.out.RuleGroupRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

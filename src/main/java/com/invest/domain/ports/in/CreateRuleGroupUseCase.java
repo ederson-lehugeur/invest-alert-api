@@ -5,5 +5,5 @@ import com.invest.application.responses.RuleGroupResponse;
 
 public interface CreateRuleGroupUseCase {
 
-    RuleGroupResponse execute(Long usuarioId, CreateRuleGroupCommand command);
+    RuleGroupResponse execute(Long userId, CreateRuleGroupCommand command);
 }

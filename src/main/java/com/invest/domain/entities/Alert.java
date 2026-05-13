@@ -1,5 +1,6 @@
 package com.invest.domain.entities;
 
+import com.invest.domain.entities.enumerator.AlertStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

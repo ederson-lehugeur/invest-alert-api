@@ -2,7 +2,7 @@ package com.invest.application.usecases;
 
 import com.invest.application.responses.AssetResponse;
 import com.invest.domain.entities.Asset;
-import com.invest.domain.ports.out.AssetRepository;
+import com.invest.domain.ports.out.repositories.AssetRepository;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;
 import org.junit.jupiter.api.BeforeEach;

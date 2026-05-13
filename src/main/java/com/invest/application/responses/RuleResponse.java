@@ -1,7 +1,7 @@
 package com.invest.application.responses;
 
-import com.invest.domain.entities.RuleField;
-import com.invest.domain.entities.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.ComparisonOperator;
 
 import java.math.BigDecimal;
 

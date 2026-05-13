@@ -1,5 +1,7 @@
 package com.invest.domain.entities;
 
+import com.invest.domain.entities.enumerator.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
 import net.jqwik.api.*;
 import net.jqwik.api.constraints.Size;
 

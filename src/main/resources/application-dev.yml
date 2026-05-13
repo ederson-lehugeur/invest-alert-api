@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/investmonitor?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: investmonitor
-    password: investmonitor
+    url: jdbc:mysql://localhost:3307/investalert?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: investalert
+    password: investalert
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   sql:

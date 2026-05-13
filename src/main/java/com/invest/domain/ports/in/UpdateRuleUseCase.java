@@ -5,5 +5,5 @@ import com.invest.application.responses.RuleResponse;
 
 public interface UpdateRuleUseCase {
 
-    RuleResponse execute(Long usuarioId, Long regraId, UpdateRuleCommand command);
+    RuleResponse execute(Long userId, Long ruleId, UpdateRuleCommand command);
 }

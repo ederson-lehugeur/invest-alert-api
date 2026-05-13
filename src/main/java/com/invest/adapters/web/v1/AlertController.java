@@ -2,7 +2,7 @@ package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.AlertFilterCommand;
 import com.invest.application.responses.AlertResponse;
-import com.invest.domain.entities.AlertStatus;
+import com.invest.domain.entities.enumerator.AlertStatus;
 import com.invest.domain.ports.in.ListAlertHistoryUseCase;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;

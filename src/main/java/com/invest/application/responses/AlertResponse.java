@@ -1,6 +1,6 @@
 package com.invest.application.responses;
 
-import com.invest.domain.entities.AlertStatus;
+import com.invest.domain.entities.enumerator.AlertStatus;
 
 import java.time.LocalDateTime;
 

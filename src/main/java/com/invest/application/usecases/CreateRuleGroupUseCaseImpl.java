@@ -9,8 +9,8 @@ import com.invest.domain.entities.Rule;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.ports.in.CreateRuleGroupUseCase;
-import com.invest.domain.ports.out.AssetRepository;
-import com.invest.domain.ports.out.RuleGroupRepository;
+import com.invest.domain.ports.out.repositories.AssetRepository;
+import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -7,7 +7,7 @@ spring:
 
   # MySQL Configuration (Req 8.1, 8.2)
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:investmonitor}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=${TZ:America/Sao_Paulo}&useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:investalert}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=${TZ:America/Sao_Paulo}&useUnicode=true&characterEncoding=UTF-8
     username: ${MYSQL_USERNAME:root}
     password: ${MYSQL_PASSWORD:changeme}
     hikari:

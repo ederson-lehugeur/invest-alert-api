@@ -5,7 +5,7 @@ import com.invest.application.responses.UserResponse;
 import com.invest.domain.entities.User;
 import com.invest.domain.exceptions.EmailAlreadyExistsException;
 import com.invest.domain.ports.out.PasswordEncoder;
-import com.invest.domain.ports.out.UserRepository;
+import com.invest.domain.ports.out.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

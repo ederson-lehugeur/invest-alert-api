@@ -22,13 +22,13 @@ import com.invest.domain.ports.in.ListRuleGroupsUseCase;
 import com.invest.domain.ports.in.ListAlertHistoryUseCase;
 import com.invest.domain.ports.in.ListRulesUseCase;
 import com.invest.domain.ports.in.RegisterUserUseCase;
-import com.invest.domain.ports.out.AlertRepository;
-import com.invest.domain.ports.out.AssetRepository;
-import com.invest.domain.ports.out.RuleGroupRepository;
+import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.AssetRepository;
+import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import com.invest.domain.ports.out.PasswordEncoder;
-import com.invest.domain.ports.out.RuleRepository;
+import com.invest.domain.ports.out.repositories.RuleRepository;
 import com.invest.domain.ports.out.TokenProvider;
-import com.invest.domain.ports.out.UserRepository;
+import com.invest.domain.ports.out.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
