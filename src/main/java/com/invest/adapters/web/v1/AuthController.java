@@ -2,10 +2,10 @@ package com.invest.adapters.web.v1;
 
 import com.invest.application.commands.AuthenticateUserCommand;
 import com.invest.application.commands.RegisterUserCommand;
+import com.invest.application.ports.in.AuthenticateUserUseCase;
+import com.invest.application.ports.in.RegisterUserUseCase;
 import com.invest.application.responses.TokenResponse;
 import com.invest.application.responses.UserResponse;
-import com.invest.domain.ports.in.AuthenticateUserUseCase;
-import com.invest.domain.ports.in.RegisterUserUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

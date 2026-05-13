@@ -1,4 +1,4 @@
-package com.invest.domain.ports.in;
+package com.invest.application.ports.in;
 
 import com.invest.application.commands.RegisterUserCommand;
 import com.invest.application.responses.UserResponse;

@@ -1,8 +1,8 @@
 package com.invest.application.usecases;
 
+import com.invest.application.ports.in.DeleteRuleUseCase;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
-import com.invest.domain.ports.in.DeleteRuleUseCase;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,11 +1,11 @@
 package com.invest.application.usecases;
 
 import com.invest.application.commands.CreateRuleCommand;
+import com.invest.application.ports.in.CreateRuleUseCase;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
-import com.invest.domain.ports.in.CreateRuleUseCase;
 import com.invest.domain.ports.out.repositories.AssetRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
 import lombok.RequiredArgsConstructor;

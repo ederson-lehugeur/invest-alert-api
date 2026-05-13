@@ -1,8 +1,8 @@
-package com.invest.domain.ports.in;
+package com.invest.application.ports.in;
 
-import com.invest.application.responses.AssetResponse;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;
+import com.invest.application.responses.AssetResponse;
 
 public interface ListAssetsUseCase {
 

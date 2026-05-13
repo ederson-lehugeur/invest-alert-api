@@ -1,10 +1,10 @@
 package com.invest.application.usecases;
 
 import com.invest.application.commands.AuthenticateUserCommand;
+import com.invest.application.ports.in.AuthenticateUserUseCase;
 import com.invest.application.responses.TokenResponse;
 import com.invest.domain.entities.User;
 import com.invest.domain.exceptions.InvalidCredentialsException;
-import com.invest.domain.ports.in.AuthenticateUserUseCase;
 import com.invest.domain.ports.out.PasswordEncoder;
 import com.invest.domain.ports.out.TokenProvider;
 import com.invest.domain.ports.out.repositories.UserRepository;

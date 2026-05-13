@@ -1,10 +1,10 @@
 package com.invest.application.usecases;
 
+import com.invest.application.ports.in.ListRuleGroupsUseCase;
 import com.invest.application.responses.RuleGroupResponse;
 import com.invest.application.responses.RuleResponse;
-import com.invest.domain.entities.RuleGroup;
 import com.invest.domain.entities.Rule;
-import com.invest.domain.ports.in.ListRuleGroupsUseCase;
+import com.invest.domain.entities.RuleGroup;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import lombok.RequiredArgsConstructor;

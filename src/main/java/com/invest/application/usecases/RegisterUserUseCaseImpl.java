@@ -1,10 +1,10 @@
 package com.invest.application.usecases;
 
 import com.invest.application.commands.RegisterUserCommand;
+import com.invest.application.ports.in.RegisterUserUseCase;
 import com.invest.application.responses.UserResponse;
 import com.invest.domain.entities.User;
 import com.invest.domain.exceptions.EmailAlreadyExistsException;
-import com.invest.domain.ports.in.RegisterUserUseCase;
 import com.invest.domain.ports.out.PasswordEncoder;
 import com.invest.domain.ports.out.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;

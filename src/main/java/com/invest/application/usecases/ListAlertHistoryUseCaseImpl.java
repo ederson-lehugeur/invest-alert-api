@@ -1,12 +1,12 @@
 package com.invest.application.usecases;
 
 import com.invest.application.commands.AlertFilterCommand;
+import com.invest.application.ports.in.ListAlertHistoryUseCase;
 import com.invest.application.responses.AlertResponse;
 import com.invest.domain.entities.Alert;
-import com.invest.domain.ports.in.ListAlertHistoryUseCase;
-import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;
+import com.invest.domain.ports.out.repositories.AlertRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

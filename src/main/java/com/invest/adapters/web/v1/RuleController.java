@@ -1,12 +1,12 @@
 package com.invest.adapters.web.v1;
 
-import com.invest.application.commands.UpdateRuleCommand;
 import com.invest.application.commands.CreateRuleCommand;
+import com.invest.application.commands.UpdateRuleCommand;
+import com.invest.application.ports.in.CreateRuleUseCase;
+import com.invest.application.ports.in.DeleteRuleUseCase;
+import com.invest.application.ports.in.ListRulesUseCase;
+import com.invest.application.ports.in.UpdateRuleUseCase;
 import com.invest.application.responses.RuleResponse;
-import com.invest.domain.ports.in.UpdateRuleUseCase;
-import com.invest.domain.ports.in.CreateRuleUseCase;
-import com.invest.domain.ports.in.DeleteRuleUseCase;
-import com.invest.domain.ports.in.ListRulesUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,14 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

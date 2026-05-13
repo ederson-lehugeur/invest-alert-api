@@ -1,4 +1,4 @@
-package com.invest.domain.ports.in;
+package com.invest.application.ports.in;
 
 import com.invest.application.commands.CreateRuleGroupCommand;
 import com.invest.application.responses.RuleGroupResponse;

@@ -1,12 +1,12 @@
 package com.invest.application.usecases;
 
 import com.invest.application.commands.UpdateRuleCommand;
+import com.invest.application.ports.in.UpdateRuleUseCase;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
-import com.invest.domain.ports.in.UpdateRuleUseCase;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
 import lombok.RequiredArgsConstructor;
