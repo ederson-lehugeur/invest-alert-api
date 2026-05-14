@@ -13,8 +13,10 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
-      - ./docker/mysql/init/01-seed-demo-user.sql:/docker-entrypoint-initdb.d/01-seed-demo-user.sql:ro
+      - ./docker/mysql/init/01-seed-roles-permissions.sql:/docker-entrypoint-initdb.d/01-seed-roles-permissions.sql:ro
       - ./docker/mysql/init/02-seed-assets.sql:/docker-entrypoint-initdb.d/02-seed-assets.sql:ro
+      - ./docker/mysql/init/03-seed-demo-user.sql:/docker-entrypoint-initdb.d/03-seed-demo-user.sql:ro
+      - ./docker/mysql/init/04-seed-admin-user.sql:/docker-entrypoint-initdb.d/04-seed-admin-user.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD:-changeme}"]
       interval: 10s

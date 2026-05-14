@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,7 @@ public class RuleGroupController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ALERT_CREATE')")
     @Operation(summary = "Create a rule group", description = "Creates a new rule group with associated rules for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Rule group created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid rule field or operator in one of the group rules")

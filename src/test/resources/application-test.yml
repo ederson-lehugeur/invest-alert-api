@@ -19,11 +19,13 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema-h2.sql
+      data-locations: classpath:data-h2.sql
 
 app:
   jwt:
     secret: test-secret-key-must-be-at-least-256-bits-long-for-hmac-sha256
     expiration-ms: 86400000
+    refresh-token-expiration-seconds: 604800
   api:
     versions:
       v1:

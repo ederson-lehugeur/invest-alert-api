@@ -4,6 +4,7 @@ import com.invest.application.commands.UpdateRuleCommand;
 import com.invest.application.ports.in.UpdateRuleUseCase;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
+import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
@@ -27,11 +28,16 @@ public class UpdateRuleUseCaseImpl implements UpdateRuleUseCase {
 
         validateCommand(command);
 
-        Rule rule = ruleRepository.findByIdAndUserId(ruleId, userId)
+        Rule rule = ruleRepository.findById(ruleId)
                 .orElseThrow(() -> {
-                    log.warn("M=execute, W=Regra nao encontrada, ruleId={}, userId={}", ruleId, userId);
+                    log.warn("M=execute, W=Regra nao encontrada, ruleId={}", ruleId);
                     return new RuleNotFoundException(ruleId);
                 });
+
+        if (!rule.getUserId().equals(userId)) {
+            log.warn("M=execute, W=Acesso negado, ruleId={}, userId={}", ruleId, userId);
+            throw new AccessDeniedException("Access denied: rule does not belong to the authenticated user");
+        }
 
         if (alertRepository.existsByRuleId(ruleId)) {
             log.warn("M=execute, W=Regra ja acionada, ruleId={}", ruleId);

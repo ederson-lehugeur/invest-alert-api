@@ -5,6 +5,7 @@ import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.EmailAlreadyExistsException;
 import com.invest.domain.exceptions.ExpiredTokenException;
 import com.invest.domain.exceptions.InvalidCredentialsException;
+import com.invest.domain.exceptions.InvalidRefreshTokenException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
@@ -32,6 +33,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ExpiredTokenException.class)
     public ResponseEntity<Map<String, Object>> handleExpiredToken(ExpiredTokenException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 

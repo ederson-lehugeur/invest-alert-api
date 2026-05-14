@@ -1,8 +1,9 @@
 package com.invest.application.usecases;
 
-import com.invest.domain.entities.enumerator.RuleField;
-import com.invest.domain.entities.enumerator.ComparisonOperator;
 import com.invest.domain.entities.Rule;
+import com.invest.domain.entities.enumerator.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.RuleNotFoundException;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
@@ -43,7 +44,7 @@ class DeleteRuleUseCaseImplTest {
                 RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.of(rule));
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(rule));
         when(alertRepository.existsByRuleId(ruleId)).thenReturn(false);
 
         useCase.execute(userId, ruleId);
@@ -52,25 +53,28 @@ class DeleteRuleUseCaseImplTest {
     }
 
     @Test
-    void shouldThrowRuleNotFoundException_whenRuleDoesNotBelongToUser() {
+    void shouldThrowRuleNotFoundException_whenRuleDoesNotExist() {
         Long userId = 1L;
         Long ruleId = 10L;
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.empty());
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.empty());
 
         assertThrows(RuleNotFoundException.class, () -> useCase.execute(userId, ruleId));
         verify(ruleRepository, never()).delete(any());
     }
 
     @Test
-    void shouldThrowRuleNotFoundException_whenRuleBelongsToAnotherUser() {
+    void shouldThrowAccessDeniedException_whenRuleBelongsToAnotherUser() {
         Long ownerUserId = 1L;
         Long attackerUserId = 2L;
         Long ruleId = 10L;
+        var rule = new Rule(ruleId, ownerUserId, "XPLG11", null,
+                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                true, LocalDateTime.now(), LocalDateTime.now());
 
-        when(ruleRepository.findByIdAndUserId(ruleId, attackerUserId)).thenReturn(Optional.empty());
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(rule));
 
-        assertThrows(RuleNotFoundException.class, () -> useCase.execute(attackerUserId, ruleId));
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(attackerUserId, ruleId));
         verify(ruleRepository, never()).delete(any());
     }
 }

@@ -2,9 +2,10 @@ package com.invest.application.usecases;
 
 import com.invest.application.commands.UpdateRuleCommand;
 import com.invest.application.responses.RuleResponse;
-import com.invest.domain.entities.enumerator.RuleField;
-import com.invest.domain.entities.enumerator.ComparisonOperator;
 import com.invest.domain.entities.Rule;
+import com.invest.domain.entities.enumerator.ComparisonOperator;
+import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
@@ -50,7 +51,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(RuleField.DIVIDEND_YIELD, ComparisonOperator.LESS_THAN,
                 BigDecimal.valueOf(8));
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.of(existingRule));
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(existingRule));
         when(ruleRepository.save(any(Rule.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RuleResponse response = useCase.execute(userId, ruleId, command);
@@ -62,15 +63,32 @@ class UpdateRuleUseCaseImplTest {
     }
 
     @Test
-    void shouldThrowRuleNotFoundException_whenRuleDoesNotBelongToUser() {
+    void shouldThrowRuleNotFoundException_whenRuleDoesNotExist() {
         Long userId = 1L;
         Long ruleId = 10L;
         var command = new UpdateRuleCommand(RuleField.PRICE, ComparisonOperator.GREATER_THAN,
                 BigDecimal.TEN);
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.empty());
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.empty());
 
         assertThrows(RuleNotFoundException.class, () -> useCase.execute(userId, ruleId, command));
+        verify(ruleRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowAccessDeniedException_whenRuleBelongsToAnotherUser() {
+        Long ownerUserId = 1L;
+        Long attackerUserId = 2L;
+        Long ruleId = 10L;
+        var existingRule = new Rule(ruleId, ownerUserId, "XPLG11", null,
+                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                true, LocalDateTime.now(), LocalDateTime.now());
+        var command = new UpdateRuleCommand(RuleField.PRICE, ComparisonOperator.GREATER_THAN,
+                BigDecimal.TEN);
+
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(existingRule));
+
+        assertThrows(AccessDeniedException.class, () -> useCase.execute(attackerUserId, ruleId, command));
         verify(ruleRepository, never()).save(any());
     }
 
@@ -79,7 +97,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(null, ComparisonOperator.GREATER_THAN, BigDecimal.TEN);
 
         assertThrows(InvalidRuleFieldException.class, () -> useCase.execute(1L, 10L, command));
-        verify(ruleRepository, never()).findByIdAndUserId(any(), any());
+        verify(ruleRepository, never()).findById(any());
     }
 
     @Test
@@ -87,7 +105,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(RuleField.PRICE, null, BigDecimal.TEN);
 
         assertThrows(InvalidRuleFieldException.class, () -> useCase.execute(1L, 10L, command));
-        verify(ruleRepository, never()).findByIdAndUserId(any(), any());
+        verify(ruleRepository, never()).findById(any());
     }
 
     @Test
@@ -95,7 +113,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(RuleField.PRICE, ComparisonOperator.GREATER_THAN, null);
 
         assertThrows(InvalidRuleFieldException.class, () -> useCase.execute(1L, 10L, command));
-        verify(ruleRepository, never()).findByIdAndUserId(any(), any());
+        verify(ruleRepository, never()).findById(any());
     }
 
     @Test
@@ -108,7 +126,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(RuleField.P_VP, ComparisonOperator.EQUAL,
                 BigDecimal.valueOf(1));
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.of(existingRule));
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(existingRule));
         when(ruleRepository.save(any(Rule.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RuleResponse response = useCase.execute(userId, ruleId, command);
@@ -127,7 +145,7 @@ class UpdateRuleUseCaseImplTest {
         var command = new UpdateRuleCommand(RuleField.DIVIDEND_YIELD, ComparisonOperator.LESS_THAN,
                 BigDecimal.valueOf(8));
 
-        when(ruleRepository.findByIdAndUserId(ruleId, userId)).thenReturn(Optional.of(existingRule));
+        when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(existingRule));
         when(alertRepository.existsByRuleId(ruleId)).thenReturn(true);
 
         assertThrows(RuleAlreadyTriggeredException.class, () -> useCase.execute(userId, ruleId, command));

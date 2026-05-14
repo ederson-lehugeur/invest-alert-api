@@ -3,6 +3,7 @@ package com.invest.infrastructure.config.security;
 import com.invest.domain.entities.User;
 import com.invest.domain.exceptions.ExpiredTokenException;
 import com.invest.domain.ports.out.TokenProvider;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -12,7 +13,10 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtTokenProvider implements TokenProvider {
@@ -28,14 +32,15 @@ public class JwtTokenProvider implements TokenProvider {
     }
 
     @Override
-    public String generateToken(User usuario) {
+    public String generateToken(User user, Collection<String> permissionNames) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
-                .subject(String.valueOf(usuario.getId()))
+                .subject(String.valueOf(user.getId()))
                 .issuedAt(now)
                 .expiration(expiration)
+                .claim("permissions", permissionNames)
                 .signWith(signingKey)
                 .compact();
     }
@@ -52,6 +57,26 @@ public class JwtTokenProvider implements TokenProvider {
             return Long.valueOf(subject);
         } catch (ExpiredJwtException e) {
             throw new ExpiredTokenException();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> extractPermissions(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(signingKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            Object permissionsClaim = claims.get("permissions");
+            if (permissionsClaim instanceof List<?> list) {
+                return (List<String>) list;
+            }
+            return Collections.emptyList();
+        } catch (JwtException | IllegalArgumentException e) {
+            return Collections.emptyList();
         }
     }
 

@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class RuleController {
     private final DeleteRuleUseCase deleteRuleUseCase;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ALERT_CREATE')")
     @Operation(summary = "Create a rule", description = "Creates a new monitoring rule for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Rule created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid rule field or operator")
@@ -55,6 +57,7 @@ public class RuleController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ALERT_UPDATE')")
     @Operation(summary = "Update a rule", description = "Updates an existing monitoring rule owned by the authenticated user")
     @ApiResponse(responseCode = "200", description = "Rule updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid rule field or operator")
@@ -70,6 +73,7 @@ public class RuleController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ALERT_DELETE')")
     @Operation(summary = "Delete a rule", description = "Deletes a monitoring rule owned by the authenticated user")
     @ApiResponse(responseCode = "204", description = "Rule deleted successfully")
     @ApiResponse(responseCode = "401", description = "Unauthorized - invalid or missing JWT token")
