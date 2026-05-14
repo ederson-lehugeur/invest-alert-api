@@ -97,3 +97,13 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     CONSTRAINT fk_role_permissions_role       FOREIGN KEY (role_id)       REFERENCES role (id),
     CONSTRAINT fk_role_permissions_permission FOREIGN KEY (permission_id) REFERENCES permission (id)
 );
+
+CREATE TABLE IF NOT EXISTS refresh_token (
+    id         BIGINT       NOT NULL AUTO_INCREMENT,
+    user_id    BIGINT       NOT NULL,
+    token      VARCHAR(512) NOT NULL,
+    expires_at TIMESTAMP(6) NOT NULL,
+    revoked    BOOLEAN      NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_refresh_token_token UNIQUE (token)
+);

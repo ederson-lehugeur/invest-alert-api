@@ -3,6 +3,8 @@
 -- MySQL DDL script
 -- ============================================================
 
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `user` (
     id                BIGINT       NOT NULL AUTO_INCREMENT,
     name              VARCHAR(255) NOT NULL,
@@ -114,3 +116,15 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     INDEX idx_role_permissions_role_id       (role_id),
     INDEX idx_role_permissions_permission_id (permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS refresh_token (
+    id         BIGINT       NOT NULL AUTO_INCREMENT,
+    user_id    BIGINT       NOT NULL,
+    token      VARCHAR(512) NOT NULL,
+    expires_at DATETIME(6)  NOT NULL,
+    revoked    BOOLEAN      NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_refresh_token_token UNIQUE (token),
+    INDEX idx_refresh_token_user_id (user_id),
+    CONSTRAINT fk_refresh_token_user FOREIGN KEY (user_id) REFERENCES `user` (id)
+);

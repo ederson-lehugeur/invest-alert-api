@@ -25,14 +25,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * These tests cover three categories:
  *
  * 1. Endpoints WITH @PreAuthorize - verify that missing the required permission returns 403.
- * 2. Endpoints WITHOUT @PreAuthorize - expose the gap where any authenticated user can access
- *    endpoints that should require a specific permission (e.g. RuleGroupController#create).
- * 3. JWT stale-permissions vulnerability - permissions embedded in the token at login time
- *    are never re-validated against the database on subsequent requests.
- *
- * Known secondary issue: SecurityConfig does not configure an AuthenticationEntryPoint,
- * so unauthenticated requests (no token) return 403 instead of the correct 401.
- * The "no token" tests below assert the actual behavior (403) and document the expected (401).
+ * 2. RuleGroupController#create - now protected with @PreAuthorize("hasAuthority('ALERT_CREATE')").
+ * 3. JWT stale-permissions - documented as a known limitation: permissions in the token are
+ *    not re-validated against the DB on each request. Mitigated by short access token TTL (15 min)
+ *    combined with refresh token rotation.
+ * 4. AuthenticationEntryPoint - unauthenticated requests now correctly return 401.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -99,14 +96,12 @@ class PermissionAuthorizationIntegrationTest {
         }
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
-            // BUG: SecurityConfig has no AuthenticationEntryPoint configured.
-            // Spring Security defaults to 403 for unauthenticated requests instead of 401.
             mockMvc.perform(post("/api/v1/rules")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(RULE_BODY))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -160,12 +155,12 @@ class PermissionAuthorizationIntegrationTest {
         }
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
             mockMvc.perform(put("/api/v1/rules/1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(UPDATE_BODY))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -210,10 +205,10 @@ class PermissionAuthorizationIntegrationTest {
         }
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
             mockMvc.perform(delete("/api/v1/rules/1"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -238,10 +233,10 @@ class PermissionAuthorizationIntegrationTest {
     class ListRulesPermission {
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
             mockMvc.perform(get("/api/v1/rules"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -262,10 +257,10 @@ class PermissionAuthorizationIntegrationTest {
     class ListAlertsPermission {
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
             mockMvc.perform(get("/api/v1/alerts"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -293,36 +288,26 @@ class PermissionAuthorizationIntegrationTest {
                 """;
 
         @Test
-        @DisplayName("Returns 403 when no token is provided (BUG: should be 401 - missing AuthenticationEntryPoint)")
+        @DisplayName("Returns 401 when no token is provided")
         void returns403WithNoToken_shouldBe401() throws Exception {
             mockMvc.perform(post("/api/v1/rule-groups")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(GROUP_BODY))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         /**
-         * BUG DEMONSTRATION: A token with NO permissions should be denied (403),
-         * but because RuleGroupController#create has no @PreAuthorize annotation,
-         * the request passes the authorization layer and reaches the use case.
-         *
-         * This test documents the current broken behavior (not 403).
-         * Once the bug is fixed by adding @PreAuthorize("hasAuthority('ALERT_CREATE')")
-         * to RuleGroupController#create, this test should be updated to expect 403.
+         * After adding @PreAuthorize("hasAuthority('ALERT_CREATE')") to RuleGroupController#create,
+         * a token with no permissions must now be rejected with 403.
          */
         @Test
-        @DisplayName("BUG: token with no permissions is NOT rejected (should be 403 but is not)")
-        void bugTokenWithNoPermissionsIsNotRejected() throws Exception {
-            int status = mockMvc.perform(post("/api/v1/rule-groups")
+        @DisplayName("Returns 403 when token carries no permissions (bug fixed)")
+        void forbiddenWithNoPermissions() throws Exception {
+            mockMvc.perform(post("/api/v1/rule-groups")
                             .header("Authorization", "Bearer " + tokenWithNoPermissions())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(GROUP_BODY))
-                    .andReturn().getResponse().getStatus();
-
-            // Documents the bug: the response is NOT 403 even though it should be.
-            assert status != 403
-                    : "BUG FIXED: RuleGroupController#create now correctly returns 403 for missing permission. "
-                    + "Update this test to expect 403.";
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -342,31 +327,29 @@ class PermissionAuthorizationIntegrationTest {
     }
 
     // -------------------------------------------------------------------------
-    // JWT stale-permissions vulnerability
+    // JWT stale-permissions - known limitation, mitigated by short TTL
     //
     // Permissions are embedded in the JWT at login time. If a user's permissions
-    // are revoked in the database, their existing token still carries the old
-    // permissions and continues to grant access until the token expires.
+    // are revoked in the database, their existing access token still carries the
+    // old permissions until it expires (default: 15 minutes).
     //
-    // This test documents the vulnerability: a token minted with ALERT_CREATE
-    // continues to authorize POST /api/v1/rules even after the permission would
-    // have been "revoked" - because the filter reads from the token, not the DB.
+    // Mitigation: short access token TTL (15 min) + refresh token rotation.
+    // When the access token expires, the refresh endpoint re-reads permissions
+    // from the DB and issues a new token with the current permission set.
+    // Revoking the refresh token (logout) prevents new access tokens from being issued.
     // -------------------------------------------------------------------------
 
     @Nested
-    @DisplayName("JWT stale-permissions vulnerability")
+    @DisplayName("JWT stale-permissions - mitigated by short TTL + refresh rotation")
     class StalePermissionsVulnerability {
 
         @Test
-        @DisplayName("Token minted with ALERT_CREATE still authorizes after simulated revocation")
-        void staleTokenStillAuthorizes() throws Exception {
-            // Simulate: user had ALERT_CREATE when they logged in.
+        @DisplayName("Stale access token still authorizes within its TTL window (expected behavior)")
+        void staleTokenStillAuthorizesWithinTtl() throws Exception {
+            // A token minted with ALERT_CREATE continues to work until it expires (15 min).
+            // This is expected and acceptable given the short TTL.
             String tokenMintedBeforeRevocation = tokenWith(List.of("ALERT_CREATE"));
 
-            // Simulate: permission was revoked in the DB (no action needed here because
-            // the filter never consults the DB - this is the vulnerability).
-
-            // The token still carries ALERT_CREATE and the filter accepts it.
             String body = """
                     {"ticker":"XPLG11","field":"PRICE","operator":"GREATER_THAN","targetValue":100}
                     """;
@@ -377,11 +360,9 @@ class PermissionAuthorizationIntegrationTest {
                             .content(body))
                     .andReturn().getResponse().getStatus();
 
-            // The request is NOT rejected with 403 - the stale token still works.
-            // This documents the vulnerability: revocation has no immediate effect.
-            assert status != 403
-                    : "Stale token was unexpectedly rejected. "
-                    + "If this is intentional, the filter now validates permissions against the DB.";
+            // Not 403 - the token is still valid within its TTL.
+            // After expiry, the refresh endpoint will re-read permissions from the DB.
+            assert status != 403 : "Token within TTL should not be rejected with 403";
         }
     }
 }

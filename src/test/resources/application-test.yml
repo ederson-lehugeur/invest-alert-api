@@ -25,6 +25,7 @@ app:
   jwt:
     secret: test-secret-key-must-be-at-least-256-bits-long-for-hmac-sha256
     expiration-ms: 86400000
+    refresh-token-expiration-seconds: 604800
   api:
     versions:
       v1:
