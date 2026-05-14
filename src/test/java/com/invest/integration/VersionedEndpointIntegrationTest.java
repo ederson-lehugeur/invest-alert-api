@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,7 +41,7 @@ class VersionedEndpointIntegrationTest {
     private String generateValidToken() {
         User user = new User(1L, "Test User", "test@example.com", "hash",
                 LocalDateTime.now(), LocalDateTime.now());
-        return tokenProvider.generateToken(user);
+        return tokenProvider.generateToken(user, Collections.emptyList());
     }
 
     @Nested

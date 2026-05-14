@@ -1,6 +1,6 @@
 # InvestAlert API
 
-Backend para monitoramento de oportunidades de investimento em FIIs (Fundos de Investimento Imobiliario). Permite criar regras de monitoramento sobre ativos, receber alertas automaticos por e-mail quando as condicoes sao atendidas e consultar historico de alertas.
+Backend para monitoramento de oportunidades de investimento em FIIs (Fundos de Investimento Imobiliario). Permite criar regras de monitoramento sobre ativos, receber alertas automaticos quando as condicoes sao atendidas e consultar historico de alertas.
 
 ## Tecnologias
 
@@ -19,17 +19,18 @@ Backend para monitoramento de oportunidades de investimento em FIIs (Fundos de I
 O projeto segue Clean Architecture com as seguintes camadas:
 
 ```
-domain          - Entidades (User, Asset, Rule, RuleGroup, Alert), ports/out (repositorios,
-                  PasswordEncoder, TokenProvider, PageRequest, PageResult)
+domain          - Entidades (User, Role, Permission, Asset, Rule, RuleGroup, Alert),
+                  enumeradores (SubscriptionPlan, AlertStatus, RuleField, ComparisonOperator),
+                  ports/out (repositorios, PasswordEncoder, TokenProvider)
 application     - ports/in (interfaces de use cases), use cases (implementacoes),
                   commands, responses
 adapters        - Controllers REST (web/v1), adaptadores JPA (persistence)
 infrastructure  - Configuracoes Spring (Security, JWT, OpenAPI, versionamento)
 ```
 
-A camada `domain` e completamente livre de dependencias externas - nao referencia nenhuma outra camada do projeto. As interfaces de use case (`ports/in`) vivem em `application` junto com os commands e responses que definem seus contratos, evitando que o dominio dependa de tipos da camada de aplicacao.
+A camada `domain` e completamente livre de dependencias externas. As interfaces de use case (`ports/in`) vivem em `application` junto com os commands e responses que definem seus contratos.
 
-As entidades JPA (`adapters/persistence/entities`) utilizam o padrao Builder via Lombok (`@Builder` + `@NoArgsConstructor` + `@AllArgsConstructor`), e os mappers constroem essas entidades exclusivamente via builder.
+As entidades JPA (`adapters/persistence/entities`) utilizam o padrao Builder via Lombok, e os mappers constroem essas entidades exclusivamente via builder.
 
 ### Fluxo de dependencias
 
@@ -45,12 +46,42 @@ adapters/web  ->  application.ports.in  <-  application.usecases
 
 ```
 HTTP Request
-    -> JwtAuthenticationFilter (valida token)
-        -> Controller (v1)
+    -> JwtAuthenticationFilter (valida token, extrai permissoes do claim JWT)
+        -> Controller (v1) (@PreAuthorize verifica authority)
             -> Use Case (application.ports.in)
-                -> Domain (regras de negocio)
+                -> Domain (regras de negocio, ownership check)
                 -> Repository (persistencia MySQL)
 ```
+
+## Autorizacao (RBAC)
+
+O sistema utiliza Role-Based Access Control (RBAC) com o modelo `usuario -> roles -> permissoes`.
+
+### Roles e permissoes
+
+| Role         | Permissoes                                                    |
+|--------------|---------------------------------------------------------------|
+| `ROLE_ADMIN` | `ALERT_CREATE`, `ALERT_UPDATE`, `ALERT_DELETE`, `USER_MANAGE`, `SYSTEM_CONFIG` |
+| `ROLE_USER`  | `ALERT_CREATE`, `ALERT_UPDATE`, `ALERT_DELETE`                |
+
+### Protecao dos endpoints
+
+| Endpoint                  | Permissao exigida  |
+|---------------------------|--------------------|
+| `POST /api/v1/rules`      | `ALERT_CREATE`     |
+| `PUT /api/v1/rules/{id}`  | `ALERT_UPDATE`     |
+| `DELETE /api/v1/rules/{id}` | `ALERT_DELETE`   |
+| Demais endpoints autenticados | `isAuthenticated()` |
+
+As permissoes sao embutidas no JWT como claim `permissions` no momento do login e extraidas pelo `JwtAuthenticationFilter` a cada requisicao, sem consulta adicional ao banco.
+
+### Ownership
+
+Operacoes de mutacao (`PUT`, `DELETE`) em regras verificam se o recurso pertence ao usuario autenticado na camada de use case. Recurso inexistente retorna `404`; recurso de outro usuario retorna `403`.
+
+### Plano de assinatura
+
+O campo `subscriptionPlan` (`FREE`, `PREMIUM`, `PRO`) e um atributo do usuario, separado do modelo de autorizacao. Nao e usado em `GrantedAuthority` e nao influencia o RBAC.
 
 ## Pre-requisitos
 
@@ -59,8 +90,6 @@ HTTP Request
 - Maven 3.9+ (ou use o wrapper `./mvnw`)
 
 ## Como rodar (standalone)
-
-Este servico pode ser executado de forma independente, sem depender dos demais servicos do projeto.
 
 ### 1. Subir o banco de dados
 
@@ -84,20 +113,22 @@ A API estara disponivel em `http://localhost:8080`.
 
 Os scripts de inicializacao sao executados automaticamente na primeira vez que o container MySQL e criado:
 
-| Arquivo                                        | Descricao                               |
-|------------------------------------------------|-----------------------------------------|
-| `src/main/resources/schema.sql`                | DDL completo (tabelas, indices, FKs)    |
-| `docker/mysql/init/01-seed-demo-user.sql`      | Usuario demo para desenvolvimento local |
-| `docker/mysql/init/02-seed-assets.sql`         | Ativos FII para testes                  |
+| Arquivo                                           | Descricao                                          |
+|---------------------------------------------------|----------------------------------------------------|
+| `src/main/resources/schema.sql`                   | DDL completo (tabelas, indices, FKs)               |
+| `docker/mysql/init/01-seed-roles-permissions.sql` | Roles, permissoes e atribuicoes                    |
+| `docker/mysql/init/02-seed-assets.sql`            | Ativos FII para testes                             |
+| `docker/mysql/init/03-seed-demo-user.sql`         | Usuario demo com `ROLE_USER`                       |
+| `docker/mysql/init/04-seed-admin-user.sql`        | Usuario admin com `ROLE_ADMIN`                     |
 
-> Para recriar o banco do zero, remova o volume: `docker compose down -v && docker compose up -d`
+> Para recriar o banco do zero: `docker compose down -v && docker compose up -d`
 
-## Usuario demo
+## Usuarios disponiveis
 
-| Campo | Valor                      |
-|-------|----------------------------|
-| Email | `demo@investmonitor.com`   |
-| Senha | `demo123`                  |
+| Usuario | Email                      | Senha      | Role         | Plano |
+|---------|----------------------------|------------|--------------|-------|
+| Demo    | `demo@investalert.com`     | `demo123`  | `ROLE_USER`  | FREE  |
+| Admin   | `admin@investalert.com`    | `****` | `ROLE_ADMIN` | PRO   |
 
 ## Endpoints (v1)
 
@@ -112,32 +143,32 @@ Todos os endpoints sao prefixados com `/api/v1`.
 
 ### Assets (autenticado)
 
-| Metodo | Endpoint                    | Descricao                  | Status   |
-|--------|-----------------------------|----------------------------|----------|
-| GET    | `/api/v1/assets`            | Listar ativos (paginado)   | 200      |
-| GET    | `/api/v1/assets/{ticker}`   | Buscar ativo por ticker    | 200, 404 |
+| Metodo | Endpoint                  | Descricao                | Status   |
+|--------|---------------------------|--------------------------|----------|
+| GET    | `/api/v1/assets`          | Listar ativos (paginado) | 200      |
+| GET    | `/api/v1/assets/{ticker}` | Buscar ativo por ticker  | 200, 404 |
 
-### Rules (autenticado)
+### Rules (autenticado + permissao)
 
-| Metodo | Endpoint                | Descricao          | Status        |
-|--------|-------------------------|--------------------|---------------|
-| POST   | `/api/v1/rules`         | Criar regra        | 201, 400, 404 |
-| GET    | `/api/v1/rules`         | Listar regras      | 200           |
-| PUT    | `/api/v1/rules/{id}`    | Atualizar regra    | 200, 403, 404 |
-| DELETE | `/api/v1/rules/{id}`    | Remover regra      | 204, 403, 404 |
+| Metodo | Endpoint              | Descricao       | Permissao      | Status        |
+|--------|-----------------------|-----------------|----------------|---------------|
+| POST   | `/api/v1/rules`       | Criar regra     | `ALERT_CREATE` | 201, 400, 403, 404 |
+| GET    | `/api/v1/rules`       | Listar regras   | -              | 200           |
+| PUT    | `/api/v1/rules/{id}`  | Atualizar regra | `ALERT_UPDATE` | 200, 403, 404 |
+| DELETE | `/api/v1/rules/{id}`  | Remover regra   | `ALERT_DELETE` | 204, 403, 404 |
 
 ### Rule Groups (autenticado)
 
-| Metodo | Endpoint                  | Descricao              | Status   |
-|--------|---------------------------|------------------------|----------|
-| POST   | `/api/v1/rule-groups`     | Criar grupo de regras  | 201, 400 |
-| GET    | `/api/v1/rule-groups`     | Listar grupos          | 200      |
+| Metodo | Endpoint              | Descricao             | Status   |
+|--------|-----------------------|-----------------------|----------|
+| POST   | `/api/v1/rule-groups` | Criar grupo de regras | 201, 400 |
+| GET    | `/api/v1/rule-groups` | Listar grupos         | 200      |
 
 ### Alerts (autenticado)
 
-| Metodo | Endpoint           | Descricao                               | Status |
-|--------|--------------------|-----------------------------------------|--------|
-| GET    | `/api/v1/alerts`   | Historico de alertas (paginado/filtros) | 200    |
+| Metodo | Endpoint          | Descricao                               | Status |
+|--------|-------------------|-----------------------------------------|--------|
+| GET    | `/api/v1/alerts`  | Historico de alertas (paginado/filtros) | 200    |
 
 Todos os endpoints autenticados exigem o header `Authorization: Bearer <token>`.
 
@@ -160,7 +191,7 @@ Registrar usuario:
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name": "[name]", "email": "[email]", "password": "[password]"}'
+  -d '{"name": "Joao", "email": "joao@example.com", "password": "senha123"}'
 ```
 
 Login:
@@ -168,7 +199,7 @@ Login:
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "[email]", "password": "[password]"}'
+  -d '{"email": "demo@investalert.com", "password": "demo123"}'
 ```
 
 Listar ativos:
@@ -178,13 +209,13 @@ curl http://localhost:8080/api/v1/assets \
   -H "Authorization: Bearer <token>"
 ```
 
-Criar regra:
+Criar regra (requer `ALERT_CREATE`):
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/rules \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{"assetTicker": "HGLG11", "field": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0}'
+  -d '{"ticker": "HGLG11", "field": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0}'
 ```
 
 Criar grupo de regras:
@@ -225,20 +256,20 @@ app:
 
 ## Variaveis de ambiente
 
-| Variavel                        | Padrao                                      | Descricao                        |
-|---------------------------------|---------------------------------------------|----------------------------------|
-| `MYSQL_HOST`                    | `localhost`                                 | Host do MySQL                    |
-| `MYSQL_PORT`                    | `3306`                                      | Porta do MySQL                   |
-| `MYSQL_DATABASE`                | `investmonitor`                             | Nome do banco                    |
-| `MYSQL_USERNAME`                | `root`                                      | Usuario do banco                 |
-| `MYSQL_PASSWORD`                | `changeme`                                  | Senha do banco                   |
-| `MYSQL_POOL_MIN_IDLE`           | `5`                                         | Minimo de conexoes ociosas       |
-| `MYSQL_POOL_MAX_SIZE`           | `20`                                        | Maximo de conexoes no pool       |
-| `MYSQL_POOL_IDLE_TIMEOUT`       | `30000`                                     | Timeout de conexao ociosa (ms)   |
-| `MYSQL_POOL_CONNECTION_TIMEOUT` | `20000`                                     | Timeout de conexao (ms)          |
-| `JWT_SECRET`                    | `your-256-bit-secret-key-change-in-production` | Chave secreta para JWT        |
-| `JWT_EXPIRATION_MS`             | `86400000`                                  | Expiracao do token (ms)          |
-| `TZ`                            | `America/Sao_Paulo`                         | Timezone da aplicacao            |
+| Variavel                        | Padrao                                         | Descricao                      |
+|---------------------------------|------------------------------------------------|--------------------------------|
+| `MYSQL_HOST`                    | `localhost`                                    | Host do MySQL                  |
+| `MYSQL_PORT`                    | `3306`                                         | Porta do MySQL                 |
+| `MYSQL_DATABASE`                | `investalert`                                  | Nome do banco                  |
+| `MYSQL_USERNAME`                | `root`                                         | Usuario do banco               |
+| `MYSQL_PASSWORD`                | `changeme`                                     | Senha do banco                 |
+| `MYSQL_POOL_MIN_IDLE`           | `5`                                            | Minimo de conexoes ociosas     |
+| `MYSQL_POOL_MAX_SIZE`           | `20`                                           | Maximo de conexoes no pool     |
+| `MYSQL_POOL_IDLE_TIMEOUT`       | `30000`                                        | Timeout de conexao ociosa (ms) |
+| `MYSQL_POOL_CONNECTION_TIMEOUT` | `20000`                                        | Timeout de conexao (ms)        |
+| `JWT_SECRET`                    | `your-256-bit-secret-key-change-in-production` | Chave secreta para JWT         |
+| `JWT_EXPIRATION_MS`             | `86400000`                                     | Expiracao do token (ms)        |
+| `TZ`                            | `America/Sao_Paulo`                            | Timezone da aplicacao          |
 
 ## Testes
 
@@ -249,8 +280,8 @@ app:
 A suite inclui:
 
 - Testes unitarios para logica de dominio e use cases
-- Property-based tests com jqwik
-- H2 em memoria para testes de unidade que envolvem persistencia
+- Property-based tests com jqwik (dominio, use cases, JWT, seguranca, ownership)
+- Testes de integracao com H2 em memoria (seguranca, versionamento, OpenAPI)
 
 ## Build da imagem Docker
 

@@ -24,6 +24,7 @@ import com.invest.application.ports.in.ListRulesUseCase;
 import com.invest.application.ports.in.RegisterUserUseCase;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.AssetRepository;
+import com.invest.domain.ports.out.repositories.RoleRepository;
 import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import com.invest.domain.ports.out.PasswordEncoder;
 import com.invest.domain.ports.out.repositories.RuleRepository;
@@ -37,8 +38,9 @@ public class UseCaseConfig {
 
     @Bean
     public RegisterUserUseCase registerUserUseCase(UserRepository userRepository,
-                                                   PasswordEncoder passwordEncoder) {
-        return new RegisterUserUseCaseImpl(userRepository, passwordEncoder);
+                                                   PasswordEncoder passwordEncoder,
+                                                   RoleRepository roleRepository) {
+        return new RegisterUserUseCaseImpl(userRepository, passwordEncoder, roleRepository);
     }
 
     @Bean

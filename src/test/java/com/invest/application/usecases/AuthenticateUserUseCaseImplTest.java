@@ -13,9 +13,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +47,7 @@ class AuthenticateUserUseCaseImplTest {
 
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("secret123", "hashed")).thenReturn(true);
-        when(tokenProvider.generateToken(user)).thenReturn("jwt.token.here");
+        when(tokenProvider.generateToken(eq(user), anyCollection())).thenReturn("jwt.token.here");
         when(tokenProvider.getExpirationInSeconds()).thenReturn(3600L);
 
         TokenResponse response = useCase.execute(command);
@@ -59,7 +62,7 @@ class AuthenticateUserUseCaseImplTest {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
         assertThrows(InvalidCredentialsException.class, () -> useCase.execute(command));
-        verify(tokenProvider, never()).generateToken(any());
+        verify(tokenProvider, never()).generateToken(any(), anyCollection());
     }
 
     @Test
@@ -71,6 +74,21 @@ class AuthenticateUserUseCaseImplTest {
         when(passwordEncoder.matches("wrongpass", "hashed")).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class, () -> useCase.execute(command));
-        verify(tokenProvider, never()).generateToken(any());
+        verify(tokenProvider, never()).generateToken(any(), anyCollection());
+    }
+
+    @Test
+    void shouldPassPermissionsCollectionToTokenProvider() {
+        var command = new AuthenticateUserCommand("john@example.com", "secret123");
+        var user = new User(1L, "John", "john@example.com", "hashed", null, null);
+
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("secret123", "hashed")).thenReturn(true);
+        when(tokenProvider.generateToken(eq(user), anyCollection())).thenReturn("jwt.token.here");
+        when(tokenProvider.getExpirationInSeconds()).thenReturn(3600L);
+
+        useCase.execute(command);
+
+        verify(tokenProvider).generateToken(eq(user), any(Collection.class));
     }
 }

@@ -11,6 +11,9 @@ import com.invest.domain.ports.out.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
@@ -34,7 +37,12 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
             throw new InvalidCredentialsException();
         }
 
-        String token = tokenProvider.generateToken(user);
+        Set<String> permissionNames = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> permission.getName())
+                .collect(Collectors.toSet());
+
+        String token = tokenProvider.generateToken(user, permissionNames);
         log.info("M=execute, I=Usuario autenticado com sucesso, userId={}", user.getId());
         return new TokenResponse(token, tokenProvider.getExpirationInSeconds());
     }
