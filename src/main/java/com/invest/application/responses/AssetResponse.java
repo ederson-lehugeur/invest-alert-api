@@ -1,13 +1,12 @@
 package com.invest.application.responses;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record AssetResponse(
         String ticker,
         String name,
-        BigDecimal currentPrice,
-        BigDecimal dividendYield,
-        BigDecimal pVp,
+        String assetType,
+        List<IndicatorValueResponse> indicators,
         LocalDateTime updatedAt
 ) {}

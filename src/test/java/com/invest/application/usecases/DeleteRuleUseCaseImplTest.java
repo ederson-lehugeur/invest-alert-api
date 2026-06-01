@@ -2,7 +2,7 @@ package com.invest.application.usecases;
 
 import com.invest.domain.entities.Rule;
 import com.invest.domain.entities.enumerator.ComparisonOperator;
-import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.RuleNotFoundException;
 import com.invest.domain.ports.out.repositories.AlertRepository;
@@ -41,7 +41,7 @@ class DeleteRuleUseCaseImplTest {
         Long userId = 1L;
         Long ruleId = 10L;
         var rule = new Rule(ruleId, userId, "XPLG11", null,
-                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                IndicatorType.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
         when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(rule));
@@ -69,7 +69,7 @@ class DeleteRuleUseCaseImplTest {
         Long attackerUserId = 2L;
         Long ruleId = 10L;
         var rule = new Rule(ruleId, ownerUserId, "XPLG11", null,
-                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                IndicatorType.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
         when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(rule));

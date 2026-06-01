@@ -1,7 +1,7 @@
 package com.invest.domain.entities;
 
 import com.invest.domain.entities.enumerator.ComparisonOperator;
-import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import net.jqwik.api.*;
 import net.jqwik.api.constraints.Size;
 
@@ -26,8 +26,8 @@ class RuleGroupProperties {
     }
 
     @Provide
-    Arbitrary<RuleField> fields() {
-        return Arbitraries.of(RuleField.values());
+    Arbitrary<IndicatorType> indicatorTypes() {
+        return Arbitraries.of(IndicatorType.values());
     }
 
     @Provide
@@ -38,11 +38,11 @@ class RuleGroupProperties {
     @Provide
     Arbitrary<Rule> rules() {
         return Combinators.combine(
-                fields(),
+                indicatorTypes(),
                 operators(),
                 positiveBigDecimals()
-        ).as((field, operator, targetValue) ->
-                new Rule(1L, 1L, "XPLG11", null, field, operator, targetValue, true, NOW, NOW)
+        ).as((indicatorType, operator, targetValue) ->
+                new Rule(1L, 1L, "XPLG11", null, indicatorType, operator, targetValue, true, NOW, NOW)
         );
     }
 
@@ -65,10 +65,10 @@ class RuleGroupProperties {
     @Property(tries = 150)
     void groupPreservesConstructorFields(
             @ForAll("positiveBigDecimals") BigDecimal targetValue,
-            @ForAll("fields") RuleField field,
+            @ForAll("indicatorTypes") IndicatorType indicatorType,
             @ForAll("operators") ComparisonOperator operator) {
 
-        Rule rule = new Rule(1L, 1L, "XPLG11", null, field, operator, targetValue, true, NOW, NOW);
+        Rule rule = new Rule(1L, 1L, "XPLG11", null, indicatorType, operator, targetValue, true, NOW, NOW);
         RuleGroup group = new RuleGroup(42L, 7L, "HGLG11", "My Group", List.of(rule), NOW);
 
         assert group.getId() == 42L : "id should be preserved";

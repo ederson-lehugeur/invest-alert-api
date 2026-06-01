@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.jpa.hibernate.ddl-auto=none",
         "spring.sql.init.mode=never",
         "spring.jpa.defer-datasource-initialization=false",
+        "spring.flyway.enabled=false",
         "app.jwt.secret=smoke-test-secret-key-must-be-at-least-256-bits-long-for-hmac",
         "app.jwt.expiration-ms=86400000"
 })
@@ -45,8 +46,8 @@ class ConfigurationSmokeTest {
             SecurityAutoConfiguration.class,
             SecurityFilterAutoConfiguration.class
     })
-    @EntityScan(basePackages = "com.investmonitor.adapters.persistence")
-    @EnableJpaRepositories(basePackages = "com.investmonitor.adapters.persistence")
+    @EntityScan(basePackages = "com.invest.adapters.persistence")
+    @EnableJpaRepositories(basePackages = "com.invest.adapters.persistence")
     static class SmokeTestConfig {
 
         @Bean

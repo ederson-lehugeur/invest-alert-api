@@ -3,11 +3,14 @@ package com.invest.application.usecases;
 import com.invest.application.commands.UpdateRuleCommand;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.entities.enumerator.ComparisonOperator;
-import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.RuleNotFoundException;
 import com.invest.domain.ports.out.repositories.AlertRepository;
+import com.invest.domain.ports.out.repositories.AssetRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
+import com.invest.domain.services.AssetTypeIndicatorRegistry;
+import com.invest.infrastructure.config.InMemoryAssetTypeIndicatorRegistry;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
@@ -34,10 +37,14 @@ class OwnershipEnforcementProperties {
 
     private final RuleRepository ruleRepository = mock(RuleRepository.class);
     private final AlertRepository alertRepository = mock(AlertRepository.class);
+    private final AssetRepository assetRepository = mock(AssetRepository.class);
+    private final AssetTypeIndicatorRegistry indicatorRegistry = new InMemoryAssetTypeIndicatorRegistry();
+
     private final DeleteRuleUseCaseImpl deleteUseCase =
             new DeleteRuleUseCaseImpl(ruleRepository, alertRepository);
     private final UpdateRuleUseCaseImpl updateUseCase =
-            new UpdateRuleUseCaseImpl(ruleRepository, alertRepository);
+            new UpdateRuleUseCaseImpl(ruleRepository, alertRepository, assetRepository,
+                    indicatorRegistry);
 
     /**
      * Property 9a: Delete ownership violation always throws AccessDeniedException, never RuleNotFoundException.
@@ -53,7 +60,7 @@ class OwnershipEnforcementProperties {
         Long attackerId = ownerAndAttacker.get2();
 
         Rule rule = new Rule(ruleId, ownerId, "XPLG11", null,
-                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                IndicatorType.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
         reset(ruleRepository);
@@ -78,13 +85,13 @@ class OwnershipEnforcementProperties {
         Long attackerId = ownerAndAttacker.get2();
 
         Rule rule = new Rule(ruleId, ownerId, "XPLG11", null,
-                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                IndicatorType.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
-        reset(ruleRepository);
+        reset(ruleRepository, assetRepository);
         when(ruleRepository.findById(ruleId)).thenReturn(Optional.of(rule));
 
-        var command = new UpdateRuleCommand(RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.TEN);
+        var command = new UpdateRuleCommand("PRICE", ComparisonOperator.GREATER_THAN, BigDecimal.TEN);
 
         assertThrows(
                 AccessDeniedException.class,

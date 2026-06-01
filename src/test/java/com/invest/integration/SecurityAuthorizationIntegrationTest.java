@@ -54,7 +54,7 @@ class SecurityAuthorizationIntegrationTest {
         void returns403WhenMissingAlertCreateAuthority() throws Exception {
             String token = tokenWithNoPermissions();
             String body = """
-                    {"ticker": "XPLG11", "field": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
+                    {"ticker": "XPLG11", "indicatorCode": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
                     """;
 
             mockMvc.perform(post("/api/v1/rules")
@@ -69,7 +69,7 @@ class SecurityAuthorizationIntegrationTest {
         void returns403WhenHasWrongAuthority() throws Exception {
             String token = tokenWithPermissions(List.of("ALERT_UPDATE", "ALERT_DELETE"));
             String body = """
-                    {"ticker": "XPLG11", "field": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
+                    {"ticker": "XPLG11", "indicatorCode": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
                     """;
 
             mockMvc.perform(post("/api/v1/rules")
@@ -89,7 +89,7 @@ class SecurityAuthorizationIntegrationTest {
         void returns403WhenMissingAlertUpdateAuthority() throws Exception {
             String token = tokenWithNoPermissions();
             String body = """
-                    {"field": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
+                    {"indicatorCode": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
                     """;
 
             mockMvc.perform(put("/api/v1/rules/1")
@@ -104,7 +104,7 @@ class SecurityAuthorizationIntegrationTest {
         void returns403WhenHasWrongAuthority() throws Exception {
             String token = tokenWithPermissions(List.of("ALERT_CREATE", "ALERT_DELETE"));
             String body = """
-                    {"field": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
+                    {"indicatorCode": "PRICE", "operator": "GREATER_THAN", "targetValue": 100}
                     """;
 
             mockMvc.perform(put("/api/v1/rules/1")

@@ -20,6 +20,9 @@ spring:
     init:
       mode: always
 
+  flyway:
+    enabled: false
+
   jpa:
     hibernate:
       ddl-auto: validate

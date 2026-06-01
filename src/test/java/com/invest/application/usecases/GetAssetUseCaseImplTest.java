@@ -2,6 +2,9 @@ package com.invest.application.usecases;
 
 import com.invest.application.responses.AssetResponse;
 import com.invest.domain.entities.Asset;
+import com.invest.domain.entities.IndicatorValue;
+import com.invest.domain.entities.enumerator.AssetType;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.ports.out.repositories.AssetRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,10 +15,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GetAssetUseCaseImplTest {
@@ -33,8 +40,18 @@ class GetAssetUseCaseImplTest {
     @Test
     void shouldReturnAsset_whenTickerExists() {
         var now = LocalDateTime.now();
-        var asset = new Asset(1L, "HGLG11", "CGHG Logistica", new BigDecimal("170.50"),
-                new BigDecimal("8.5"), new BigDecimal("1.05"), now);
+        var asset = Asset.builder()
+                .id(1L)
+                .ticker("HGLG11")
+                .name("CGHG Logistica")
+                .assetType(AssetType.FII)
+                .indicatorValues(List.of(
+                        new IndicatorValue(IndicatorType.PRICE, new BigDecimal("170.50")),
+                        new IndicatorValue(IndicatorType.DIVIDEND_YIELD, new BigDecimal("8.5")),
+                        new IndicatorValue(IndicatorType.PVP, new BigDecimal("1.05"))
+                ))
+                .updatedAt(now)
+                .build();
 
         when(assetRepository.findByTicker("HGLG11")).thenReturn(Optional.of(asset));
 
@@ -42,10 +59,15 @@ class GetAssetUseCaseImplTest {
 
         assertEquals("HGLG11", response.ticker());
         assertEquals("CGHG Logistica", response.name());
-        assertEquals(new BigDecimal("170.50"), response.currentPrice());
-        assertEquals(new BigDecimal("8.5"), response.dividendYield());
-        assertEquals(new BigDecimal("1.05"), response.pVp());
+        assertEquals("FII", response.assetType());
+        assertEquals(3, response.indicators().size());
         assertEquals(now, response.updatedAt());
+
+        var priceIndicator = response.indicators().stream()
+                .filter(iv -> "PRICE".equals(iv.code()))
+                .findFirst();
+        assertTrue(priceIndicator.isPresent());
+        assertEquals(new BigDecimal("170.50"), priceIndicator.get().value());
     }
 
     @Test

@@ -4,11 +4,14 @@ import com.invest.domain.exceptions.AccessDeniedException;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.EmailAlreadyExistsException;
 import com.invest.domain.exceptions.ExpiredTokenException;
+import com.invest.domain.exceptions.IncompatibleIndicatorException;
+import com.invest.domain.exceptions.InvalidAssetTypeException;
 import com.invest.domain.exceptions.InvalidCredentialsException;
 import com.invest.domain.exceptions.InvalidRefreshTokenException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
 import com.invest.domain.exceptions.RuleAlreadyTriggeredException;
 import com.invest.domain.exceptions.RuleNotFoundException;
+import com.invest.domain.exceptions.UnknownIndicatorException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -64,6 +67,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuleAlreadyTriggeredException.class)
     public ResponseEntity<Map<String, Object>> handleRuleAlreadyTriggered(RuleAlreadyTriggeredException ex) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(IncompatibleIndicatorException.class)
+    public ResponseEntity<Map<String, Object>> handleIncompatibleIndicator(IncompatibleIndicatorException ex) {
+        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    }
+
+    @ExceptionHandler(UnknownIndicatorException.class)
+    public ResponseEntity<Map<String, Object>> handleUnknownIndicator(UnknownIndicatorException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidAssetTypeException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidAssetType(InvalidAssetTypeException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {

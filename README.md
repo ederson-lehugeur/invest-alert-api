@@ -1,6 +1,6 @@
 # InvestAlert API
 
-Backend para monitoramento de oportunidades de investimento em FIIs (Fundos de Investimento Imobiliario). Permite criar regras de monitoramento sobre ativos, receber alertas automaticos quando as condicoes sao atendidas e consultar historico de alertas.
+Backend para monitoramento de oportunidades de investimento em ativos financeiros (FIIs, Acoes, Criptomoedas). Permite criar regras de monitoramento sobre indicadores de ativos, receber alertas automaticos quando as condicoes sao atendidas e consultar historico de alertas.
 
 ## Tecnologias
 
@@ -20,12 +20,15 @@ O projeto segue Clean Architecture com as seguintes camadas:
 
 ```
 domain          - Entidades (User, Role, Permission, Asset, Rule, RuleGroup, Alert),
-                  enumeradores (SubscriptionPlan, AlertStatus, RuleField, ComparisonOperator),
-                  ports/out (repositorios, PasswordEncoder, TokenProvider)
+                  value objects (IndicatorValue),
+                  enumeradores (AssetType, IndicatorType, ComparisonOperator, SubscriptionPlan, AlertStatus),
+                  ports/out (repositorios, PasswordEncoder, TokenProvider),
+                  services (AssetTypeIndicatorRegistry)
 application     - ports/in (interfaces de use cases), use cases (implementacoes),
                   commands, responses
 adapters        - Controllers REST (web/v1), adaptadores JPA (persistence)
-infrastructure  - Configuracoes Spring (Security, JWT, OpenAPI, versionamento)
+infrastructure  - Configuracoes Spring (Security, JWT, OpenAPI, versionamento),
+                  InMemoryAssetTypeIndicatorRegistry
 ```
 
 A camada `domain` e completamente livre de dependencias externas. As interfaces de use case (`ports/in`) vivem em `application` junto com os commands e responses que definem seus contratos.
@@ -52,6 +55,28 @@ HTTP Request
                 -> Domain (regras de negocio, ownership check)
                 -> Repository (persistencia MySQL)
 ```
+
+## Multi-Asset Type e Indicadores
+
+O sistema suporta multiplos tipos de ativos, cada um com indicadores financeiros especificos:
+
+| Asset Type       | Indicadores suportados                          |
+|------------------|-------------------------------------------------|
+| `FII`            | `PRICE`, `DIVIDEND_YIELD`, `PVP`                |
+| `STOCK`          | `PRICE`, `DIVIDEND_YIELD`, `PVP`, `PL`, `ROE`   |
+| `CRYPTOCURRENCY` | `PRICE`                                         |
+
+### Arquitetura de indicadores
+
+- **`IndicatorType`** (enum de dominio): Representa os indicadores financeiros disponiveis. Type-safe, elimina codigos invalidos em tempo de compilacao.
+- **`AssetTypeIndicatorRegistry`** (interface de dominio): Unica fonte de verdade para registro, compatibilidade e validacao de indicadores por tipo de ativo.
+- **`InMemoryAssetTypeIndicatorRegistry`** (infraestrutura): Implementacao em memoria baseada em `EnumMap`/`EnumSet`. Performance O(1) para lookups, thread-safe por imutabilidade.
+
+A configuracao de quais indicadores sao suportados por cada tipo de ativo reside exclusivamente em codigo. Nao ha tabelas de configuracao no banco para essa relacao. Os valores numericos dos indicadores de cada ativo individual sao armazenados na tabela `asset_indicator_value`.
+
+### Validacao de compatibilidade
+
+Ao criar ou atualizar uma regra, o sistema valida automaticamente se o indicador e compativel com o tipo do ativo. Indicadores incompativeis resultam em HTTP 422 (`IncompatibleIndicatorException`). Codigos de indicador desconhecidos resultam em HTTP 400 (`UnknownIndicatorException`).
 
 ## Autorizacao (RBAC)
 
@@ -107,21 +132,29 @@ Isso inicia o **MySQL 8.4** na porta `3306` com schema e dados de seed carregado
 
 A API estara disponivel em `http://localhost:8080`.
 
-> O schema e gerenciado pelo Spring via `src/main/resources/schema.sql` (`spring.sql.init.mode: always`). O Hibernate valida o schema na inicializacao (`ddl-auto: validate`).
+> O schema e gerenciado via `src/main/resources/schema.sql` (`spring.sql.init.mode: always`). O Hibernate valida o schema na inicializacao (`ddl-auto: validate`).
 
 ## Banco de dados
 
-Os scripts de inicializacao sao executados automaticamente na primeira vez que o container MySQL e criado:
+O schema e criado automaticamente pelo Docker na primeira inicializacao do container MySQL. Os scripts sao executados em ordem alfabetica:
 
 | Arquivo                                           | Descricao                                          |
 |---------------------------------------------------|----------------------------------------------------|
 | `src/main/resources/schema.sql`                   | DDL completo (tabelas, indices, FKs)               |
 | `docker/mysql/init/01-seed-roles-permissions.sql` | Roles, permissoes e atribuicoes                    |
-| `docker/mysql/init/02-seed-assets.sql`            | Ativos FII para testes                             |
+| `docker/mysql/init/02-seed-assets.sql`            | Ativos e valores de indicadores                    |
 | `docker/mysql/init/03-seed-demo-user.sql`         | Usuario demo com `ROLE_USER`                       |
 | `docker/mysql/init/04-seed-admin-user.sql`        | Usuario admin com `ROLE_ADMIN`                     |
 
 > Para recriar o banco do zero: `docker compose down -v && docker compose up -d`
+
+### Estrutura das tabelas principais
+
+```sql
+asset (id, ticker, name, asset_type, updated_at)
+asset_indicator_value (asset_id, indicator_type, value)  -- PK composta
+rule (id, user_id, ticker, group_id, indicator_type, operator, target_value, active, ...)
+```
 
 ## Usuarios disponiveis
 
@@ -148,14 +181,20 @@ Todos os endpoints sao prefixados com `/api/v1`.
 | GET    | `/api/v1/assets`          | Listar ativos (paginado) | 200      |
 | GET    | `/api/v1/assets/{ticker}` | Buscar ativo por ticker  | 200, 404 |
 
+### Asset Types (autenticado)
+
+| Metodo | Endpoint                                  | Descricao                              | Status   |
+|--------|-------------------------------------------|----------------------------------------|----------|
+| GET    | `/api/v1/asset-types/{assetType}/indicators` | Indicadores suportados por tipo de ativo | 200, 400 |
+
 ### Rules (autenticado + permissao)
 
-| Metodo | Endpoint              | Descricao       | Permissao      | Status        |
-|--------|-----------------------|-----------------|----------------|---------------|
-| POST   | `/api/v1/rules`       | Criar regra     | `ALERT_CREATE` | 201, 400, 403, 404 |
-| GET    | `/api/v1/rules`       | Listar regras   | -              | 200           |
-| PUT    | `/api/v1/rules/{id}`  | Atualizar regra | `ALERT_UPDATE` | 200, 403, 404 |
-| DELETE | `/api/v1/rules/{id}`  | Remover regra   | `ALERT_DELETE` | 204, 403, 404 |
+| Metodo | Endpoint              | Descricao       | Permissao      | Status              |
+|--------|-----------------------|-----------------|----------------|---------------------|
+| POST   | `/api/v1/rules`       | Criar regra     | `ALERT_CREATE` | 201, 400, 404, 422  |
+| GET    | `/api/v1/rules`       | Listar regras   | -              | 200                 |
+| PUT    | `/api/v1/rules/{id}`  | Atualizar regra | `ALERT_UPDATE` | 200, 400, 403, 404, 422 |
+| DELETE | `/api/v1/rules/{id}`  | Remover regra   | `ALERT_DELETE` | 204, 403, 404       |
 
 ### Rule Groups (autenticado)
 
@@ -209,13 +248,20 @@ curl http://localhost:8080/api/v1/assets \
   -H "Authorization: Bearer <token>"
 ```
 
+Consultar indicadores suportados por tipo de ativo:
+
+```bash
+curl http://localhost:8080/api/v1/asset-types/FII/indicators \
+  -H "Authorization: Bearer <token>"
+```
+
 Criar regra (requer `ALERT_CREATE`):
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/rules \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{"ticker": "HGLG11", "field": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0}'
+  -d '{"ticker": "HGLG11", "indicatorCode": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0}'
 ```
 
 Criar grupo de regras:
@@ -228,8 +274,8 @@ curl -X POST http://localhost:8080/api/v1/rule-groups \
     "ticker": "HGLG11",
     "name": "Meu Grupo",
     "rules": [
-      {"field": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0},
-      {"field": "P_VP", "operator": "LESS_THAN", "targetValue": 1.1}
+      {"indicatorCode": "DIVIDEND_YIELD", "operator": "GREATER_THAN", "targetValue": 9.0},
+      {"indicatorCode": "PVP", "operator": "LESS_THAN", "targetValue": 1.1}
     ]
   }'
 ```
@@ -280,8 +326,8 @@ app:
 A suite inclui:
 
 - Testes unitarios para logica de dominio e use cases
-- Property-based tests com jqwik (dominio, use cases, JWT, seguranca, ownership)
-- Testes de integracao com H2 em memoria (seguranca, versionamento, OpenAPI)
+- Property-based tests com jqwik (dominio, use cases, JWT, seguranca, ownership, indicadores)
+- Testes de integracao com H2 em memoria (seguranca, versionamento, OpenAPI, schema)
 
 ## Build da imagem Docker
 

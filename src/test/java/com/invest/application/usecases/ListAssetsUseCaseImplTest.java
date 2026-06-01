@@ -2,9 +2,12 @@ package com.invest.application.usecases;
 
 import com.invest.application.responses.AssetResponse;
 import com.invest.domain.entities.Asset;
-import com.invest.domain.ports.out.repositories.AssetRepository;
+import com.invest.domain.entities.IndicatorValue;
+import com.invest.domain.entities.enumerator.AssetType;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.ports.out.PageRequest;
 import com.invest.domain.ports.out.PageResult;
+import com.invest.domain.ports.out.repositories.AssetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +18,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ListAssetsUseCaseImplTest {
@@ -34,10 +38,8 @@ class ListAssetsUseCaseImplTest {
     @Test
     void shouldReturnPaginatedAssets() {
         var now = LocalDateTime.now();
-        var asset1 = new Asset(1L, "HGLG11", "CGHG Logistica", new BigDecimal("170.50"),
-                new BigDecimal("8.5"), new BigDecimal("1.05"), now);
-        var asset2 = new Asset(2L, "XPML11", "XP Malls", new BigDecimal("95.30"),
-                new BigDecimal("7.2"), new BigDecimal("0.92"), now);
+        var asset1 = fiiAsset(1L, "HGLG11", "CGHG Logistica", now);
+        var asset2 = fiiAsset(2L, "XPML11", "XP Malls", now);
 
         var pageRequest = new PageRequest(0, 10);
         var domainPage = new PageResult<>(List.of(asset1, asset2), 0, 10, 2, 1);
@@ -55,9 +57,8 @@ class ListAssetsUseCaseImplTest {
         AssetResponse first = result.content().get(0);
         assertEquals("HGLG11", first.ticker());
         assertEquals("CGHG Logistica", first.name());
-        assertEquals(new BigDecimal("170.50"), first.currentPrice());
-        assertEquals(new BigDecimal("8.5"), first.dividendYield());
-        assertEquals(new BigDecimal("1.05"), first.pVp());
+        assertEquals("FII", first.assetType());
+        assertEquals(3, first.indicators().size());
         assertEquals(now, first.updatedAt());
     }
 
@@ -78,8 +79,7 @@ class ListAssetsUseCaseImplTest {
     @Test
     void shouldMapAllFieldsCorrectly() {
         var now = LocalDateTime.of(2025, 6, 15, 10, 30);
-        var asset = new Asset(1L, "KNRI11", "Kinea Renda", new BigDecimal("130.00"),
-                new BigDecimal("6.8"), new BigDecimal("0.88"), now);
+        var asset = fiiAsset(1L, "KNRI11", "Kinea Renda", now);
 
         var pageRequest = new PageRequest(0, 5);
         var domainPage = new PageResult<>(List.of(asset), 0, 5, 1, 1);
@@ -91,9 +91,23 @@ class ListAssetsUseCaseImplTest {
         AssetResponse response = result.content().get(0);
         assertEquals("KNRI11", response.ticker());
         assertEquals("Kinea Renda", response.name());
-        assertEquals(new BigDecimal("130.00"), response.currentPrice());
-        assertEquals(new BigDecimal("6.8"), response.dividendYield());
-        assertEquals(new BigDecimal("0.88"), response.pVp());
+        assertEquals("FII", response.assetType());
+        assertEquals(3, response.indicators().size());
         assertEquals(now, response.updatedAt());
+    }
+
+    private Asset fiiAsset(Long id, String ticker, String name, LocalDateTime updatedAt) {
+        return Asset.builder()
+                .id(id)
+                .ticker(ticker)
+                .name(name)
+                .assetType(AssetType.FII)
+                .indicatorValues(List.of(
+                        new IndicatorValue(IndicatorType.PRICE, new BigDecimal("170.50")),
+                        new IndicatorValue(IndicatorType.DIVIDEND_YIELD, new BigDecimal("8.5")),
+                        new IndicatorValue(IndicatorType.PVP, new BigDecimal("1.05"))
+                ))
+                .updatedAt(updatedAt)
+                .build();
     }
 }

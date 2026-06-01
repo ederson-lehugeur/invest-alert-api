@@ -7,8 +7,10 @@ import com.invest.application.responses.RuleGroupResponse;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.entities.RuleGroup;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
+import com.invest.domain.exceptions.UnknownIndicatorException;
 import com.invest.domain.ports.out.repositories.AssetRepository;
 import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -71,8 +73,8 @@ public class CreateRuleGroupUseCaseImpl implements CreateRuleGroupUseCase {
     }
 
     private void validateRuleCommand(CreateRuleCommand command) {
-        if (command.field() == null) {
-            throw new InvalidRuleFieldException("Field 'field' is required. Accepted values: PRICE, DIVIDEND_YIELD, P_VP");
+        if (command.indicatorCode() == null || command.indicatorCode().isBlank()) {
+            throw new InvalidRuleFieldException("Field 'indicatorCode' is required");
         }
         if (command.operator() == null) {
             throw new InvalidRuleFieldException("Field 'operator' is required. Accepted values: GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, EQUAL");
@@ -92,12 +94,15 @@ public class CreateRuleGroupUseCaseImpl implements CreateRuleGroupUseCase {
     }
 
     private Rule toRule(CreateRuleCommand command, Long userId, String ticker, LocalDateTime now) {
+        IndicatorType indicatorType = IndicatorType.fromCode(command.indicatorCode())
+                .orElseThrow(() -> new UnknownIndicatorException(command.indicatorCode()));
+
         return new Rule(
                 null,
                 userId,
                 ticker,
                 null,
-                command.field(),
+                indicatorType,
                 command.operator(),
                 command.targetValue(),
                 true,
@@ -123,7 +128,7 @@ public class CreateRuleGroupUseCaseImpl implements CreateRuleGroupUseCase {
         return new RuleResponse(
                 rule.getId(),
                 rule.getTicker(),
-                rule.getField(),
+                rule.getIndicatorType().code(),
                 rule.getOperator(),
                 rule.getTargetValue(),
                 rule.getGroupId(),

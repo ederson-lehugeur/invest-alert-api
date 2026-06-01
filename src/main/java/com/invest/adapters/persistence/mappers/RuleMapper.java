@@ -5,6 +5,7 @@ import com.invest.adapters.persistence.entities.RuleEntity;
 import com.invest.adapters.persistence.entities.RuleGroupEntity;
 import com.invest.adapters.persistence.entities.UserEntity;
 import com.invest.domain.entities.Rule;
+import com.invest.domain.entities.enumerator.IndicatorType;
 
 public final class RuleMapper {
 
@@ -17,7 +18,7 @@ public final class RuleMapper {
                 .user(user)
                 .asset(asset)
                 .group(group)
-                .field(domain.getField())
+                .indicatorType(domain.getIndicatorType().code())
                 .operator(domain.getOperator())
                 .targetValue(domain.getTargetValue())
                 .active(domain.isActive())
@@ -33,7 +34,7 @@ public final class RuleMapper {
                 entity.getUser().getId(),
                 entity.getAsset().getTicker(),
                 groupId,
-                entity.getField(),
+                IndicatorType.fromCode(entity.getIndicatorType()).orElseThrow(),
                 entity.getOperator(),
                 entity.getTargetValue(),
                 entity.isActive(),

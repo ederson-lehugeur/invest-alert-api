@@ -1,7 +1,7 @@
 package com.invest.domain.entities;
 
 import com.invest.domain.entities.enumerator.ComparisonOperator;
-import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class Rule {
     private Long userId;
     private String ticker;
     @Setter private Long groupId;
-    @Setter private RuleField field;
+    @Setter private IndicatorType indicatorType;
     @Setter private ComparisonOperator operator;
     @Setter private BigDecimal targetValue;
     @Setter private boolean active;

@@ -1,8 +1,17 @@
 package com.invest.adapters.persistence.entities;
 
 import com.invest.domain.entities.enumerator.ComparisonOperator;
-import com.invest.domain.entities.enumerator.RuleField;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,9 +46,8 @@ public class RuleEntity {
     @JoinColumn(name = "group_id")
     private RuleGroupEntity group;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "field", nullable = false)
-    private RuleField field;
+    @Column(name = "indicator_type", nullable = false)
+    private String indicatorType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "operator", nullable = false)
