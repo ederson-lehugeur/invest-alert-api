@@ -17,12 +17,18 @@ CREATE TABLE IF NOT EXISTS asset (
     id              BIGINT         NOT NULL AUTO_INCREMENT,
     ticker          VARCHAR(20)    NOT NULL,
     name            VARCHAR(255)   NOT NULL,
-    current_price   DECIMAL(19,4)  NOT NULL,
-    dividend_yield  DECIMAL(19,4)  NOT NULL,
-    p_vp            DECIMAL(19,4)  NOT NULL,
+    asset_type      VARCHAR(30)    NOT NULL DEFAULT 'FII',
     updated_at      TIMESTAMP(6)   NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT uk_asset_ticker UNIQUE (ticker)
+);
+
+CREATE TABLE IF NOT EXISTS asset_indicator_value (
+    asset_id       BIGINT        NOT NULL,
+    indicator_type VARCHAR(50)   NOT NULL,
+    value          DECIMAL(19,4) NOT NULL,
+    PRIMARY KEY (asset_id, indicator_type),
+    CONSTRAINT fk_aiv_asset FOREIGN KEY (asset_id) REFERENCES asset (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS rule_group (
@@ -36,16 +42,16 @@ CREATE TABLE IF NOT EXISTS rule_group (
 );
 
 CREATE TABLE IF NOT EXISTS rule (
-    id            BIGINT         NOT NULL AUTO_INCREMENT,
-    user_id       BIGINT         NOT NULL,
-    ticker        VARCHAR(20)    NOT NULL,
-    group_id      BIGINT         NULL,
-    field         VARCHAR(30)    NOT NULL,
-    operator      VARCHAR(30)    NOT NULL,
-    target_value  DECIMAL(19,4)  NOT NULL,
-    active        BOOLEAN        NOT NULL DEFAULT TRUE,
-    created_at    TIMESTAMP(6)   NOT NULL,
-    updated_at    TIMESTAMP(6)   NOT NULL,
+    id             BIGINT         NOT NULL AUTO_INCREMENT,
+    user_id        BIGINT         NOT NULL,
+    ticker         VARCHAR(20)    NOT NULL,
+    group_id       BIGINT         NULL,
+    indicator_type VARCHAR(50)    NOT NULL,
+    operator       VARCHAR(30)    NOT NULL,
+    target_value   DECIMAL(19,4)  NOT NULL,
+    active         BOOLEAN        NOT NULL DEFAULT TRUE,
+    created_at     TIMESTAMP(6)   NOT NULL,
+    updated_at     TIMESTAMP(6)   NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_rule_user  FOREIGN KEY (user_id)  REFERENCES "user" (id),
     CONSTRAINT fk_rule_asset FOREIGN KEY (ticker)    REFERENCES asset (ticker),

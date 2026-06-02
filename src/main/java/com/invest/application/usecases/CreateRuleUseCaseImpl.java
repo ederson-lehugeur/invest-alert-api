@@ -4,10 +4,13 @@ import com.invest.application.commands.CreateRuleCommand;
 import com.invest.application.ports.in.CreateRuleUseCase;
 import com.invest.application.responses.RuleResponse;
 import com.invest.domain.entities.Rule;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.exceptions.AssetNotFoundException;
 import com.invest.domain.exceptions.InvalidRuleFieldException;
+import com.invest.domain.exceptions.UnknownIndicatorException;
 import com.invest.domain.ports.out.repositories.AssetRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
+import com.invest.domain.services.AssetTypeIndicatorRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,15 +22,22 @@ public class CreateRuleUseCaseImpl implements CreateRuleUseCase {
 
     private final RuleRepository ruleRepository;
     private final AssetRepository assetRepository;
+    private final AssetTypeIndicatorRegistry indicatorRegistry;
 
     @Override
     public RuleResponse execute(Long userId, CreateRuleCommand command) {
-        log.info("M=execute, I=Criando regra, userId={}, ticker={}, field={}, operator={}", userId, command.ticker(), command.field(), command.operator());
+        log.info("M=execute, I=Criando regra, userId={}, ticker={}, indicatorCode={}, operator={}",
+                userId, command.ticker(), command.indicatorCode(), command.operator());
 
         validateCommand(command);
 
-        assetRepository.findByTicker(command.ticker())
+        var asset = assetRepository.findByTicker(command.ticker())
                 .orElseThrow(() -> new AssetNotFoundException(command.ticker()));
+
+        IndicatorType indicatorType = indicatorRegistry.findByCode(command.indicatorCode())
+                .orElseThrow(() -> new UnknownIndicatorException(command.indicatorCode()));
+
+        indicatorRegistry.validate(asset.getAssetType(), indicatorType);
 
         LocalDateTime now = LocalDateTime.now();
         Rule rule = new Rule(
@@ -35,7 +45,7 @@ public class CreateRuleUseCaseImpl implements CreateRuleUseCase {
                 userId,
                 command.ticker(),
                 command.groupId(),
-                command.field(),
+                indicatorType,
                 command.operator(),
                 command.targetValue(),
                 true,
@@ -49,8 +59,8 @@ public class CreateRuleUseCaseImpl implements CreateRuleUseCase {
     }
 
     private void validateCommand(CreateRuleCommand command) {
-        if (command.field() == null) {
-            throw new InvalidRuleFieldException("Field 'field' is required. Accepted values: PRICE, DIVIDEND_YIELD, P_VP");
+        if (command.indicatorCode() == null || command.indicatorCode().isBlank()) {
+            throw new InvalidRuleFieldException("Field 'indicatorCode' is required");
         }
         if (command.operator() == null) {
             throw new InvalidRuleFieldException("Field 'operator' is required. Accepted values: GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, EQUAL");
@@ -67,7 +77,7 @@ public class CreateRuleUseCaseImpl implements CreateRuleUseCase {
         return new RuleResponse(
                 rule.getId(),
                 rule.getTicker(),
-                rule.getField(),
+                rule.getIndicatorType().code(),
                 rule.getOperator(),
                 rule.getTargetValue(),
                 rule.getGroupId(),

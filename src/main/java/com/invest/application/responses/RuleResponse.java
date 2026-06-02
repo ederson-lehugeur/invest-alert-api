@@ -1,6 +1,5 @@
 package com.invest.application.responses;
 
-import com.invest.domain.entities.enumerator.RuleField;
 import com.invest.domain.entities.enumerator.ComparisonOperator;
 
 import java.math.BigDecimal;
@@ -8,7 +7,7 @@ import java.math.BigDecimal;
 public record RuleResponse(
         Long id,
         String ticker,
-        RuleField field,
+        String indicatorType,
         ComparisonOperator operator,
         BigDecimal targetValue,
         Long groupId,

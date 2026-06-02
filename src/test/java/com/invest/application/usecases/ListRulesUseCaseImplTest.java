@@ -1,8 +1,8 @@
 package com.invest.application.usecases;
 
 import com.invest.application.responses.RuleResponse;
-import com.invest.domain.entities.enumerator.RuleField;
 import com.invest.domain.entities.enumerator.ComparisonOperator;
+import com.invest.domain.entities.enumerator.IndicatorType;
 import com.invest.domain.entities.Rule;
 import com.invest.domain.ports.out.repositories.AlertRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
@@ -39,10 +39,10 @@ class ListRulesUseCaseImplTest {
     void shouldReturnOnlyRulesForAuthenticatedUser() {
         Long userId = 1L;
         var rule1 = new Rule(1L, userId, "XPLG11", null,
-                RuleField.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
+                IndicatorType.PRICE, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(100),
                 true, LocalDateTime.now(), LocalDateTime.now());
         var rule2 = new Rule(2L, userId, "HGLG11", null,
-                RuleField.DIVIDEND_YIELD, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(9),
+                IndicatorType.DIVIDEND_YIELD, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(9),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
         when(ruleRepository.findByUserId(userId)).thenReturn(List.of(rule1, rule2));
@@ -69,7 +69,7 @@ class ListRulesUseCaseImplTest {
     void shouldMapAllFieldsCorrectly() {
         Long userId = 1L;
         var rule = new Rule(5L, userId, "VISC11", 3L,
-                RuleField.P_VP, ComparisonOperator.LESS_THAN_OR_EQUAL, BigDecimal.valueOf(1.05),
+                IndicatorType.PVP, ComparisonOperator.LESS_THAN_OR_EQUAL, BigDecimal.valueOf(1.05),
                 true, LocalDateTime.now(), LocalDateTime.now());
 
         when(ruleRepository.findByUserId(userId)).thenReturn(List.of(rule));
@@ -80,7 +80,7 @@ class ListRulesUseCaseImplTest {
         RuleResponse response = result.getFirst();
         assertEquals(5L, response.id());
         assertEquals("VISC11", response.ticker());
-        assertEquals(RuleField.P_VP, response.field());
+        assertEquals("PVP", response.indicatorType());
         assertEquals(ComparisonOperator.LESS_THAN_OR_EQUAL, response.operator());
         assertEquals(BigDecimal.valueOf(1.05), response.targetValue());
         assertEquals(3L, response.groupId());

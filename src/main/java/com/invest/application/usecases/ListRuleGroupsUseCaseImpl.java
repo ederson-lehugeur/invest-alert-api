@@ -52,7 +52,7 @@ public class ListRuleGroupsUseCaseImpl implements ListRuleGroupsUseCase {
         return new RuleResponse(
                 rule.getId(),
                 rule.getTicker(),
-                rule.getField(),
+                rule.getIndicatorType().code(),
                 rule.getOperator(),
                 rule.getTargetValue(),
                 rule.getGroupId(),

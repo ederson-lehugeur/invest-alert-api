@@ -1,23 +1,11 @@
 package com.invest.infrastructure.config;
 
-import com.invest.application.usecases.AuthenticateUserUseCaseImpl;
-import com.invest.application.usecases.CreateRuleGroupUseCaseImpl;
-import com.invest.application.usecases.CreateRuleUseCaseImpl;
-import com.invest.application.usecases.DeleteRuleUseCaseImpl;
-import com.invest.application.usecases.GetAssetUseCaseImpl;
-import com.invest.application.usecases.ListAlertHistoryUseCaseImpl;
-import com.invest.application.usecases.ListAssetsUseCaseImpl;
-import com.invest.application.usecases.ListRuleGroupsUseCaseImpl;
-import com.invest.application.usecases.ListRulesUseCaseImpl;
-import com.invest.application.usecases.RefreshTokenUseCaseImpl;
-import com.invest.application.usecases.RegisterUserUseCaseImpl;
-import com.invest.application.usecases.RevokeRefreshTokenUseCaseImpl;
-import com.invest.application.usecases.UpdateRuleUseCaseImpl;
 import com.invest.application.ports.in.AuthenticateUserUseCase;
 import com.invest.application.ports.in.CreateRuleGroupUseCase;
 import com.invest.application.ports.in.CreateRuleUseCase;
 import com.invest.application.ports.in.DeleteRuleUseCase;
 import com.invest.application.ports.in.GetAssetUseCase;
+import com.invest.application.ports.in.GetSupportedIndicatorsUseCase;
 import com.invest.application.ports.in.ListAlertHistoryUseCase;
 import com.invest.application.ports.in.ListAssetsUseCase;
 import com.invest.application.ports.in.ListRuleGroupsUseCase;
@@ -26,6 +14,20 @@ import com.invest.application.ports.in.RefreshTokenUseCase;
 import com.invest.application.ports.in.RegisterUserUseCase;
 import com.invest.application.ports.in.RevokeRefreshTokenUseCase;
 import com.invest.application.ports.in.UpdateRuleUseCase;
+import com.invest.application.usecases.AuthenticateUserUseCaseImpl;
+import com.invest.application.usecases.CreateRuleGroupUseCaseImpl;
+import com.invest.application.usecases.CreateRuleUseCaseImpl;
+import com.invest.application.usecases.DeleteRuleUseCaseImpl;
+import com.invest.application.usecases.GetAssetUseCaseImpl;
+import com.invest.application.usecases.GetSupportedIndicatorsUseCaseImpl;
+import com.invest.application.usecases.ListAlertHistoryUseCaseImpl;
+import com.invest.application.usecases.ListAssetsUseCaseImpl;
+import com.invest.application.usecases.ListRuleGroupsUseCaseImpl;
+import com.invest.application.usecases.ListRulesUseCaseImpl;
+import com.invest.application.usecases.RefreshTokenUseCaseImpl;
+import com.invest.application.usecases.RegisterUserUseCaseImpl;
+import com.invest.application.usecases.RevokeRefreshTokenUseCaseImpl;
+import com.invest.application.usecases.UpdateRuleUseCaseImpl;
 import com.invest.domain.ports.out.PasswordEncoder;
 import com.invest.domain.ports.out.RefreshTokenGenerator;
 import com.invest.domain.ports.out.TokenProvider;
@@ -36,6 +38,7 @@ import com.invest.domain.ports.out.repositories.RoleRepository;
 import com.invest.domain.ports.out.repositories.RuleGroupRepository;
 import com.invest.domain.ports.out.repositories.RuleRepository;
 import com.invest.domain.ports.out.repositories.UserRepository;
+import com.invest.domain.services.AssetTypeIndicatorRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -91,15 +94,25 @@ public class UseCaseConfig {
     }
 
     @Bean
+    public GetSupportedIndicatorsUseCase getSupportedIndicatorsUseCase(
+            AssetTypeIndicatorRegistry indicatorRegistry) {
+        return new GetSupportedIndicatorsUseCaseImpl(indicatorRegistry);
+    }
+
+    @Bean
     public CreateRuleUseCase createRuleUseCase(RuleRepository ruleRepository,
-                                               AssetRepository assetRepository) {
-        return new CreateRuleUseCaseImpl(ruleRepository, assetRepository);
+                                               AssetRepository assetRepository,
+                                               AssetTypeIndicatorRegistry indicatorRegistry) {
+        return new CreateRuleUseCaseImpl(ruleRepository, assetRepository, indicatorRegistry);
     }
 
     @Bean
     public UpdateRuleUseCase updateRuleUseCase(RuleRepository ruleRepository,
-                                               AlertRepository alertRepository) {
-        return new UpdateRuleUseCaseImpl(ruleRepository, alertRepository);
+                                               AlertRepository alertRepository,
+                                               AssetRepository assetRepository,
+                                               AssetTypeIndicatorRegistry indicatorRegistry) {
+        return new UpdateRuleUseCaseImpl(ruleRepository, alertRepository,
+                assetRepository, indicatorRegistry);
     }
 
     @Bean

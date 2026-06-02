@@ -70,7 +70,7 @@ class PermissionAuthorizationIntegrationTest {
     class CreateRulePermission {
 
         private static final String RULE_BODY = """
-                {"ticker":"XPLG11","field":"PRICE","operator":"GREATER_THAN","targetValue":100}
+                {"ticker":"NONEXISTENT_TICKER","indicatorCode":"PRICE","operator":"GREATER_THAN","targetValue":100}
                 """;
 
         @Test
@@ -129,7 +129,7 @@ class PermissionAuthorizationIntegrationTest {
     class UpdateRulePermission {
 
         private static final String UPDATE_BODY = """
-                {"field":"PRICE","operator":"GREATER_THAN","targetValue":150}
+                {"indicatorCode":"PRICE","operator":"GREATER_THAN","targetValue":150}
                 """;
 
         @Test
@@ -168,7 +168,7 @@ class PermissionAuthorizationIntegrationTest {
         void notForbiddenWithAlertUpdate() throws Exception {
             String token = tokenWith(List.of("ALERT_UPDATE"));
 
-            int status = mockMvc.perform(put("/api/v1/rules/1")
+            int status = mockMvc.perform(put("/api/v1/rules/999999")
                             .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(UPDATE_BODY))
@@ -216,7 +216,7 @@ class PermissionAuthorizationIntegrationTest {
         void notForbiddenWithAlertDelete() throws Exception {
             String token = tokenWith(List.of("ALERT_DELETE"));
 
-            int status = mockMvc.perform(delete("/api/v1/rules/1")
+            int status = mockMvc.perform(delete("/api/v1/rules/999999")
                             .header("Authorization", "Bearer " + token))
                     .andReturn().getResponse().getStatus();
 
@@ -351,7 +351,7 @@ class PermissionAuthorizationIntegrationTest {
             String tokenMintedBeforeRevocation = tokenWith(List.of("ALERT_CREATE"));
 
             String body = """
-                    {"ticker":"XPLG11","field":"PRICE","operator":"GREATER_THAN","targetValue":100}
+                    {"ticker":"NONEXISTENT_TICKER","indicatorCode":"PRICE","operator":"GREATER_THAN","targetValue":100}
                     """;
 
             int status = mockMvc.perform(post("/api/v1/rules")

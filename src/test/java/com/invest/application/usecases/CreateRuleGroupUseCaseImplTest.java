@@ -4,7 +4,7 @@ import com.invest.application.commands.CreateRuleGroupCommand;
 import com.invest.application.commands.CreateRuleCommand;
 import com.invest.application.responses.RuleGroupResponse;
 import com.invest.domain.entities.Asset;
-import com.invest.domain.entities.enumerator.RuleField;
+import com.invest.domain.entities.enumerator.AssetType;
 import com.invest.domain.entities.RuleGroup;
 import com.invest.domain.entities.enumerator.ComparisonOperator;
 import com.invest.domain.exceptions.AssetNotFoundException;
@@ -47,19 +47,18 @@ class CreateRuleGroupUseCaseImplTest {
     }
 
     private Asset defaultAsset() {
-        return new Asset(1L, TICKER, "FII XP Log", BigDecimal.valueOf(110),
-                BigDecimal.valueOf(8.5), BigDecimal.valueOf(0.95), LocalDateTime.now());
+        return new Asset(1L, TICKER, "FII XP Log", AssetType.FII, List.of(), LocalDateTime.now());
     }
 
-    private CreateRuleCommand ruleCommand(RuleField field, ComparisonOperator operator, BigDecimal value) {
-        return new CreateRuleCommand(TICKER, field, operator, value, null);
+    private CreateRuleCommand ruleCommand(String indicatorCode, ComparisonOperator operator, BigDecimal value) {
+        return new CreateRuleCommand(TICKER, indicatorCode, operator, value, null);
     }
 
     @Test
     void shouldCreateGroupWithValidData() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100)),
-                ruleCommand(RuleField.DIVIDEND_YIELD, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(8))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100)),
+                ruleCommand("DIVIDEND_YIELD", ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(8))
         );
         var command = new CreateRuleGroupCommand(TICKER, "Oportunidade XPLG11", rules);
 
@@ -86,7 +85,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldSaveGroupWithCorrectUserId() {
         var rules = List.of(
-                ruleCommand(RuleField.P_VP, ComparisonOperator.LESS_THAN_OR_EQUAL, BigDecimal.valueOf(1.2))
+                ruleCommand("PVP", ComparisonOperator.LESS_THAN_OR_EQUAL, BigDecimal.valueOf(1.2))
         );
         var command = new CreateRuleGroupCommand(TICKER, "Grupo PVP", rules);
 
@@ -103,8 +102,8 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldAssignGroupTickerToAllRules() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100)),
-                new CreateRuleCommand(null, RuleField.DIVIDEND_YIELD, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(8), null)
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100)),
+                new CreateRuleCommand(null, "DIVIDEND_YIELD", ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(8), null)
         );
         var command = new CreateRuleGroupCommand(TICKER, "Grupo Misto", rules);
 
@@ -122,7 +121,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldThrowAssetNotFoundException_whenTickerDoesNotExist() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
         );
         var command = new CreateRuleGroupCommand("INVALID", "Grupo", rules);
 
@@ -135,7 +134,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldThrowInvalidRuleFieldException_whenTickerIsBlank() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
         );
         var command = new CreateRuleGroupCommand("  ", "Grupo", rules);
 
@@ -146,7 +145,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldThrowInvalidRuleFieldException_whenNameIsBlank() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
         );
         var command = new CreateRuleGroupCommand(TICKER, "", rules);
 
@@ -163,7 +162,7 @@ class CreateRuleGroupUseCaseImplTest {
     }
 
     @Test
-    void shouldThrowInvalidRuleFieldException_whenRuleHasNullField() {
+    void shouldThrowInvalidRuleFieldException_whenRuleHasNullIndicatorCode() {
         var rules = List.of(
                 new CreateRuleCommand(TICKER, null, ComparisonOperator.GREATER_THAN, BigDecimal.TEN, null)
         );
@@ -176,7 +175,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldThrowInvalidRuleFieldException_whenRuleHasNullOperator() {
         var rules = List.of(
-                new CreateRuleCommand(TICKER, RuleField.PRICE, null, BigDecimal.TEN, null)
+                new CreateRuleCommand(TICKER, "PRICE", null, BigDecimal.TEN, null)
         );
         var command = new CreateRuleGroupCommand(TICKER, "Grupo", rules);
 
@@ -187,7 +186,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldThrowInvalidRuleFieldException_whenRuleTickerDiffersFromGroupTicker() {
         var rules = List.of(
-                new CreateRuleCommand("HGLG11", RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100), null)
+                new CreateRuleCommand("HGLG11", "PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100), null)
         );
         var command = new CreateRuleGroupCommand(TICKER, "Grupo Mismatch", rules);
 
@@ -200,12 +199,12 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldAllowMultipleGroupsForSameUser() {
         var rules1 = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
         );
         var command1 = new CreateRuleGroupCommand(TICKER, "Grupo 1", rules1);
 
         var rules2 = List.of(
-                ruleCommand(RuleField.DIVIDEND_YIELD, ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(9))
+                ruleCommand("DIVIDEND_YIELD", ComparisonOperator.GREATER_THAN, BigDecimal.valueOf(9))
         );
         var command2 = new CreateRuleGroupCommand(TICKER, "Grupo 2", rules2);
 
@@ -227,7 +226,7 @@ class CreateRuleGroupUseCaseImplTest {
     @Test
     void shouldCreateRulesAsActiveByDefault() {
         var rules = List.of(
-                ruleCommand(RuleField.PRICE, ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
+                ruleCommand("PRICE", ComparisonOperator.LESS_THAN, BigDecimal.valueOf(100))
         );
         var command = new CreateRuleGroupCommand(TICKER, "Grupo Asset", rules);
 

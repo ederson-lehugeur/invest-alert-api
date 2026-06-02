@@ -37,9 +37,10 @@ public class RuleController {
     @PreAuthorize("hasAuthority('ALERT_CREATE')")
     @Operation(summary = "Create a rule", description = "Creates a new monitoring rule for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Rule created successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid rule field or operator")
+    @ApiResponse(responseCode = "400", description = "Invalid indicator code or operator")
     @ApiResponse(responseCode = "401", description = "Unauthorized - invalid or missing JWT token")
     @ApiResponse(responseCode = "404", description = "Asset not found for the given ticker")
+    @ApiResponse(responseCode = "422", description = "Indicator not supported for the asset type")
     public ResponseEntity<RuleResponse> create(@RequestBody CreateRuleCommand command) {
         Long userId = getAuthenticatedUserId();
         RuleResponse response = createRuleUseCase.execute(userId, command);
@@ -60,10 +61,11 @@ public class RuleController {
     @PreAuthorize("hasAuthority('ALERT_UPDATE')")
     @Operation(summary = "Update a rule", description = "Updates an existing monitoring rule owned by the authenticated user")
     @ApiResponse(responseCode = "200", description = "Rule updated successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid rule field or operator")
+    @ApiResponse(responseCode = "400", description = "Invalid indicator code or operator")
     @ApiResponse(responseCode = "401", description = "Unauthorized - invalid or missing JWT token")
     @ApiResponse(responseCode = "403", description = "Access denied - rule belongs to another user")
     @ApiResponse(responseCode = "404", description = "Rule not found")
+    @ApiResponse(responseCode = "422", description = "Indicator not supported for the asset type")
     public ResponseEntity<RuleResponse> update(
             @Parameter(description = "Rule ID") @PathVariable Long id,
             @RequestBody UpdateRuleCommand command) {
