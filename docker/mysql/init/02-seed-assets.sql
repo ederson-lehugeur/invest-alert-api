@@ -12,7 +12,9 @@ INSERT INTO asset (ticker, name, asset_type, updated_at) VALUES
 ('XPML11', 'XP Malls',                                            'FII', NOW(6)),
 ('GARE11', 'Guardian Real Estate',                                 'FII', NOW(6)),
 ('RBRR11', 'RBR Rendimento High Grade',                           'FII', NOW(6)),
-('VGHF11', 'VALORA HEDGE FUND',                                   'FII', NOW(6))
+('VGHF11', 'VALORA HEDGE FUND',                                   'FII', NOW(6)),
+('BTCUSD', 'Bitcoin',                                             'CRYPTOCURRENCY', NOW(6)),
+('BRSR6', 'Banrisul',                                             'STOCK', NOW(6))
 ON DUPLICATE KEY UPDATE
     name       = VALUES(name),
     asset_type = VALUES(asset_type),
@@ -117,4 +119,24 @@ SELECT id, 'DIVIDEND_YIELD', 12.5000 FROM asset WHERE ticker = 'VGHF11'
 ON DUPLICATE KEY UPDATE value = VALUES(value);
 INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
 SELECT id, 'PVP', 0.8200 FROM asset WHERE ticker = 'VGHF11'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'PRICE', 67044.0000 FROM asset WHERE ticker = 'BTCUSD'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'PRICE', 14.8400 FROM asset WHERE ticker = 'BRSR6'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'DIVIDEND_YIELD', 10.7900 FROM asset WHERE ticker = 'BRSR6'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'PVP', 0.5200 FROM asset WHERE ticker = 'BRSR6'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'PL', 3.4200 FROM asset WHERE ticker = 'BRSR6'
+ON DUPLICATE KEY UPDATE value = VALUES(value);
+INSERT INTO asset_indicator_value (asset_id, indicator_type, value)
+SELECT id, 'ROE', 15.1100 FROM asset WHERE ticker = 'BRSR6'
 ON DUPLICATE KEY UPDATE value = VALUES(value);
